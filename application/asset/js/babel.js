@@ -30,8 +30,8 @@ function hexDecode(s)
 }
 function Babel() {
     var jsbHost = "http://localhost:610/jsbabel";
-    var dropUpImg = '/img/arrowup.png';
-    var dropDownImg = '/img/arrowdown.png';
+    var dropUpImg = '/img/dropup.gif';
+    var dropDownImg = '/img/dropdown.gif';
     var stringScript = '/translator/get_translations';
     var getLoginScript = '/translator/get_login_page';
     var translatorScript = '/js/translator.js';
@@ -63,6 +63,10 @@ function Babel() {
     this.TypeImageChar = '!';
     this.TypeIgnoreChar = ':';
     this.translating = false;
+    var SiteAdmin = 1;
+    var SiteOwner = 2;
+    var SiteTranslator = 3;
+    var userRole;
     function elementFromPoint(x, y)
     {
         if (!document.elementFromPoint)
@@ -223,8 +227,9 @@ function Babel() {
             alert(e);
         }
     };
-    this.addTranslatorScripts = function (userRole, demo) {
+    this.addTranslatorScripts = function (role, demo) {
         demoMode = demo;
+        userRole = role;
         tr.addAndWait(
                 function () {
                     return typeof (jQuery) !== 'undefined';
@@ -248,7 +253,7 @@ function Babel() {
         var h = targetDoc.getElementsByTagName("head")[0];
         var scriptNode = targetDoc.createElement('script');
         scriptNode.type = 'text/javascript';
-        scriptNode.src = src.indexOf("http") == 0 ? src : jsbDomain + src;
+        scriptNode.src = src.indexOf("http") === 0 ? src : jsbDomain + src;
         h.appendChild(scriptNode);
     };
     this.addCss = function (src, targetDoc) {
@@ -258,7 +263,7 @@ function Babel() {
         var cssNode = targetDoc.createElement('link');
         cssNode.type = "text/css";
         cssNode.rel = "stylesheet";
-        cssNode.href = src.indexOf("http") == 0 ? src : jsbDomain + src;
+        cssNode.href = src.indexOf("http") === 0 ? src : jsbDomain + src;
         h.appendChild(cssNode);
     };
     this.setPos = function (aAnchor, left, top) {

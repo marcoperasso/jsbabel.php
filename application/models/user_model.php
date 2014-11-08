@@ -45,11 +45,11 @@ class User_model extends MY_Model {
     }
 
     public function get_sites() {
-        if (!$sites) {
+        if (!$this->sites) {
             $this->load->model('Site_users_model');
-            $sites = $this->Site_users_model->get_user_sites($this->id);
+            $this->sites = $this->Site_users_model->get_user_sites($this->id);
         }
-        return $sites;
+        return $this->sites;
     }
 
     /*    public function get_user($mail) {
