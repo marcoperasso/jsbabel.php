@@ -1,0 +1,44 @@
+div.jsb_translator {
+    position: absolute;
+    height: 20px;
+    overflow: hidden;
+    background: transparent;
+    padding: 0px 20px 0px 0px;
+    box-sizing: initial;
+}
+div.jsb_translator.translateMode {
+    cursor: move;
+}
+div.jsb_translator.translateMode:hover
+{
+}
+
+img.jsb_imageButton {
+    cursor: pointer;
+    height: 20px;
+    width: 40px;
+    padding-bottom: 5px;
+    box-sizing: initial;
+    display: inline-block;
+}
+
+img.jsb_dropdown {
+    cursor: pointer;
+    height: 20px;
+    width: 20px;
+    box-sizing: initial;
+    vertical-align: top;
+}
+div.jsb_translator.translateMode img.jsb_dropdown{
+    cursor: move;
+}
+.jsb_translateCurrent {
+    background-color: orange;
+    border-color: blue;
+    color: black;
+}
+
+img.jsb_clickable
+{
+    cursor: pointer;
+}

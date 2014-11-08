@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(css|js|img)/(.+)$ jsbabel/application/asset/$1/$2 [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ jsbabel/index.php?/$1 [L]
+
+
+</IfModule>

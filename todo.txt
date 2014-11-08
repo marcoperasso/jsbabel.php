@@ -1,0 +1,2 @@
+calcolare dinamicamente l'host di provenienza dello script
+levare linea orizzontale bianca sotto header
