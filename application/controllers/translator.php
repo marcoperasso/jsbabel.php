@@ -39,7 +39,7 @@ class Translator extends MY_Controller {
     //returns login page
     public function get_login_page() {
         $view = $this->load->view('login', '', true);
-        $view = array_shift(unpack('H*', $view));
+        $view = hexEncode($view);
         $response = 'jQuery(hexDecode("' . $view . '")).appendTo(document.body);';
         $this->output
                 ->set_content_type('text/javascript')
@@ -72,7 +72,7 @@ class Translator extends MY_Controller {
     }
 
     function do_logoff() {
-        set_user(null);
+        set_user(NULL);
         $response = "location.reload();";
         $this->output
                 ->set_content_type('text/javascript')
@@ -154,12 +154,6 @@ class Translator extends MY_Controller {
                 ->set_output($response);
     }
 
-    public function begin_autotranslate() {
-        $this->output
-                ->set_content_type('text/json')
-                ->set_output(json_encode(array("success" => true)));
-    }
-
     //saves translations for a page
     //reads params using POST
     public function save_translations() {
@@ -176,47 +170,62 @@ class Translator extends MY_Controller {
         $i = 0;
         $base;
         while ($base = $this->input->post("b" . $i)) {
-            array_push($tt, new Translations_model(
-                    array("baseString" => $base, "targetString" => $this->input->post("t" . $i),
-                "pageSpecific" => "true" == $this->input->post("p" . $i),
-                "type" => StringType::Text)));
+            array_push($tt, $this->Translations_model->create($base, $this->input->post("t" . $i), StringType::Text, "true" == $this->input->post("p" . $i)));
             $i++;
         }
         $i = 0;
         while ($base = $this->input->post("bm" . $i)) {
-            array_push($tt, new Translations_model(
-                    array("baseString" => $base, "targetString" => $this->input->post("tm" . $i),
-                "pageSpecific" => "true" == $this->input->post("pm" . $i),
-                "type" => StringType::Text)));
+            array_push($tt, $this->Translations_model->create($base, $this->input->post("tm" . $i), StringType::Move, "true" == $this->input->post("pm" . $i)));
             $i++;
         }
 
         while ($base = $this->input->post("bi" . $i)) {
-            array_push($tt, new Translations_model(
-                    array("baseString" => $base, "targetString" => $this->input->post("ti" . $i),
-                "pageSpecific" => "true" == $this->input->post("pi" . $i),
-                "type" => StringType::Text)));
+            array_push($tt, $this->Translations_model->create($base, $this->input->post("ti" . $i), StringType::Ignore, "true" == $this->input->post("pi" . $i)));
             $i++;
         }
         $this->Translations_model->save_translations($site->id, $tt, parse_url($url, PHP_URL_PATH), $targetLanguage, $append);
-//dh . setTranslations(req . getSession(), tt, url, targetLanguage, append);
         $this->output
                 ->set_content_type('text/json')
                 ->set_output(json_encode(array("success" => true)));
     }
 
+    public function begin_autotranslate() {
+        $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode(array("success" => true)));
+
+        if (!isset($_SESSION))
+            return;
+        $url = $this->input->post('src');
+        $targetLocale = $this->input->post('targetLocale');
+        $strings = $this->input->post('strings');
+
+        if ($strings === NULL)
+            return;
+
+        $site = $this->Site_model->get_site(parse_url($url, PHP_URL_HOST));
+        if (!$site)
+            return;
+
+        $tt = $this->Translations_model->parse($strings);
+        $this->Translations_model->auto_translate($site->id, $targetLocale, $tt);
+        $key = $this->get_automatic_translation_key($url, $targetLocale);
+        $_SESSION[$key] = $this->Translations_model->serialize($tt);
+    }
+
     public function end_autotranslate() {
         $response = "";
-        $url = $this->input->get('src');
-        $targetLocale = $this->input->get('loc');
-        $t = null;
-//            Translations t = (Translations) req.getSession().getAttribute(Helper.getAutomaticTranslationKey(url, targetLocale));
-        if ($t != null) {
-            $response = "__babel.addAutomaticTranslations('" . $t->serialize() . "');";
-        } else {
-            $response = "__babel.addAutomaticTranslations('');";
+        if (isset($_SESSION)) {
+            $url = $this->input->get('src');
+            $targetLocale = $this->input->get('loc');
+            $t = $_SESSION[$this->get_automatic_translation_key($url, $targetLocale)];
+            if ($t) {
+                $response = "__babel.addAutomaticTranslations('" . str_replace("'", "\\'", $t) . "');";
+            } else {
+                $response = "__babel.addAutomaticTranslations('');";
+            }
         }
-//req.getSession().setAttribute(Helper.getAutomaticTranslationKey(url, targetLocale), null);
+        $_SESSION[$this->get_automatic_translation_key($url, $targetLocale)] = NULL;
         $this->output
                 ->set_content_type('text/javascript')
                 ->set_output($response);
@@ -233,6 +242,10 @@ class Translator extends MY_Controller {
 
     private function is_persistent() {
         return true;
+    }
+
+    private function get_automatic_translation_key($url, $targetLocale) {
+        return hexEncode($url . $targetLocale);
     }
 
 }
