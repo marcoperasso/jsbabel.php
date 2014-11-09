@@ -88,14 +88,36 @@ class Translator extends MY_Controller {
         $targetLocale = $this->input->get('loc');
         $clientDataVer = $this->input->get('vData');
         $clientStringsVer = $this->input->get('vStrings');
+        $clientData = new stdClass;
+        $clientData->ld = array();
+
+        $user = get_user();
         $site = $this->Site_model->get_site(parse_url($url, PHP_URL_HOST));
-        if (!$site)
+        //site not yet registered: apply default data
+        if (!$site) {
+            if ($user) {//user logged: open site manager
+                $adminUrl = BASE_URL . "/mysites";
+                //avoid recursion!
+                if ($url != $adminUrl)
+                $this->output
+                        ->set_content_type('text/javascript')
+                        ->set_output("window.open('" . $adminUrl . "', 'JSBABEL');");
+            } else {//user not logged: add login button
+                $clientData->bl = "";
+                $clientData->a = "C";
+                $clientData->x = 0;
+                $clientData->y = 0;
+
+                $this->output
+                        ->set_content_type('text/javascript')
+                        ->set_output("__babel.setTranslationData(" . json_encode($clientData) . ", 0, '', 0);");
+            }
             return;
+        }
         $serverVer = $site->translation_version + CLIENT_CACHE_VERSION;
 
         $baseLocale = $site->base_locale;
         $translations = "";
-        $user = get_user();
         if ($user) {
             $role = $user->get_role($site->id);
             switch ($role) {
@@ -108,12 +130,9 @@ class Translator extends MY_Controller {
                     break;
             }
         }
-        $send = false;
 
         //when user is logged, translate mode is active
         if ($user || $serverVer != $clientDataVer) {
-            $clientData = new stdClass;
-            $clientData->ld = array();
             $clientData->bl = $baseLocale;
             $clientData->a = $site->anchor;
             $clientData->x = $site->offset;
@@ -129,26 +148,19 @@ class Translator extends MY_Controller {
                     array_push($clientData->ld, $this->getLocaleFlagData($loc));
                 }
             }
-            $send = true;
         }
-
-        if ($user || $serverVer != $clientStringsVer) {
+        if ($serverVer != $clientStringsVer) {
             if ($baseLocale != $targetLocale) {
                 $translations = $this->Translations_model->read_translations($site->id, $targetLocale, parse_url($url, PHP_URL_PATH));
-
-                if (strlen($translations) > 0) {
-                    $send = true;
-                }
             }
         }
-        if ($send) {
-            $response .= "__babel.setTranslationData(" .
-                    json_encode($clientData) . ',' .
-                    $serverVer . ',"' .
-                    $translations . '",' .
-                    $serverVer . ');';
-        }
 
+
+        $response .= "__babel.setTranslationData(" .
+                json_encode($clientData) . ',' .
+                $serverVer . ',"' .
+                $translations . '",' .
+                $serverVer . ');';
         $this->output
                 ->set_content_type('text/javascript')
                 ->set_output($response);

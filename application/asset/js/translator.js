@@ -1602,7 +1602,7 @@ function Translator() {
         f.submit();
     }
 
-    //jQuery('*:not(".jsb_notranslate")').hover(tr.onHover);
+    jQuery('*:not(".jsb_notranslate")').hover(tr.onHover);
 
     $(document).mousemove(function (event) {
         currentMousePos.x = event.pageX;

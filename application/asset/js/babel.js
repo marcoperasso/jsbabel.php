@@ -168,7 +168,7 @@ function Babel() {
                 this.addDropdown();
             trnCnt.appendChild(document.createElement('br'));
         }
-        tr.addButton('jsb_login', "/img/dotranslate.png", _jsb("Edit translations"), tr.onEdit);
+        tr.addButton('jsb_login', "/img/login.png", _jsb("Edit translations"), tr.onEdit);
         trnCnt.style.display = "block";
         tr.setPos(trnData.a, trnData.x, trnData.y);
     };

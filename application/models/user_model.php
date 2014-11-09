@@ -1,5 +1,7 @@
 <?php
 
+require_once("site_users_model.php");
+
 class User_model extends MY_Model {
 
     public $id;
@@ -23,6 +25,10 @@ class User_model extends MY_Model {
             'active' => 'ACTIVE',
             'password' => 'PASSWORD'
         );
+    }
+
+    public function to_string() {
+        return $this->name . ' ' . $this->surname;
     }
 
     public function get_user($userId) {
