@@ -50,6 +50,7 @@
         </div>
     </div>
 </div>
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="<?php echo BASE_URL ?>/js/md5-min.js"></script>
 <script type="text/javascript">
@@ -119,6 +120,20 @@
         jQuery('.glyphicon', jGroup).addClass('glyphicon-warning-sign');
         return false;
     }
+    function _jsbOpenLoginModal()
+    {
+        if (!jQuery.prototype.modal)
+        {
+            //wait wor bootstrapt script to load
+            setTimeout(_jsbOpenLoginModal, 1)
+        }
+        else
+            jQuery("#_jsbLoginModal")
+                    .modal('show')
+                    .on('shown', function () {
+                        jQuery("#_jsbloginid").focus();
+                    })
+    }
     jQuery(function ()
     {
         jQuery("#_jsbloginforget").click(_jsbResetPassword);
@@ -128,11 +143,7 @@
                 _jsbDoLogin();
             }
         });
-        jQuery("#_jsbLoginModal")
-                .modal('show')
-                .on('shown', function () {
-                    jQuery("#_jsbloginid").focus();
-                })
+        _jsbOpenLoginModal();
 
     });
 </script>
