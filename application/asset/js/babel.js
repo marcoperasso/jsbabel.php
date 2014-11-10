@@ -172,7 +172,7 @@ function Babel() {
                 this.addDropdown();
             trnCnt.appendChild(document.createElement('br'));
         }
-        tr.addButton('jsb_login', "/img/login.png", _jsb("Edit translations"), tr.onEdit);
+        tr.addButton('jsb_login', "/img/login.png", _jsb("Edit translations"), tr.login);
         trnCnt.style.display = "block";
         tr.setPos(trnData.a, trnData.x, trnData.y);
     };
@@ -193,7 +193,7 @@ function Babel() {
         trnCnt.appendChild(img);
 
     };
-    this.onEdit = function () {
+    this.login = function () {
         var jLogin = jQuery("#_jsbLoginModal");
         if (jLogin.length > 0)
             jLogin.modal();

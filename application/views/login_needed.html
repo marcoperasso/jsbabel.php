@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="import" href="templates/header.html">
+        <title>Login needed</title>
+    </head>
+
+    <body>
+        <div class="content" >
+            <div class="col-md-2"></div>
+            <div class="col-md-8 container">
+                <h1>Sorry, authentication needed.</h1>
+            </div>
+            <div class="col-md-2"></div>
+
+            <div id="redirectUrl" style="display: none;">{{data.state.redirectUrl}}</div>
+            <div id="user" style="display: none;">{{data.user}}</div>
+            <script type="text/javascript">
+                window.controllerReady = function (scope)
+                {
+                    debugger;
+                    if (scope.data.user)
+                        document.location.href = scope.data.redirectUrl;
+                    else
+                        __babel.login();
+                }
+            </script>
+        </div>
+
+    </body>
+</html>
+

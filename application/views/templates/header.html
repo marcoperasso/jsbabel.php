@@ -29,7 +29,7 @@
             jContainer.append($(data));
         })
         jContainer.attr("ng-app", "").attr("ng-controller", "jsbController");
-        
+
         $.getScript("//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js");
     });
 
@@ -37,6 +37,8 @@
         $http.get("home/data")
                 .success(function (response) {
                     $scope.data = response;
+                    if (window.controllerReady)
+                        window.controllerReady($scope);
                 });
     }
 </script>

@@ -5,8 +5,6 @@ if (!defined('BASEPATH'))
 
 class MY_Controller extends CI_Controller {
 
-    var $user;
-
     public function __construct() {
         parent::__construct();
         if (!isset($_SESSION)) {
@@ -19,6 +17,41 @@ class MY_Controller extends CI_Controller {
         $this->lang->load("messages", "it-IT");
         //$this->load->model('User_model');
         //$this->user = (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
+    }
+
+   protected function set_user($user) {
+    if (isset($_SESSION))
+        $_SESSION["user"] = serialize($user);
+}
+
+protected function get_user() {
+    $CI = & get_instance();
+    $CI->load->model('User_model');
+    return (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
+}
+
+
+
+protected function get_state() {
+    $CI = & get_instance();
+    return (isset($_SESSION) && isset($_SESSION['state'])) ? unserialize($_SESSION["state"]) : new stdClass;
+}
+
+protected function set_state($state) {
+    if (isset($_SESSION))
+        $_SESSION["state"] = serialize($state);
+}
+    protected function get_user_or_redirect() {
+        $user = $this->get_user();
+
+        if ($user)
+            return $user;
+
+        $state = $this->get_state();
+        $state->redirectUrl = $this->router->fetch_class() . '/' . $this->router->fetch_method();
+        $this->set_state($state);
+        $this->load->view('login_needed.html');
+        return NULL;
     }
 
     protected function send_mail($to, $subject, $message) {
@@ -47,13 +80,10 @@ class MY_Controller extends CI_Controller {
     }
 
     protected function validate_login() {
-        if ($this->user == NULL)
-        {
+        if ($this->user == NULL) {
             $this->load_view(
-                    "loginneeded",
-                    "Richiesta login", 
-                    array('request' => $_SERVER['REQUEST_URI'])
-                    );
+                    "loginneeded", "Richiesta login", array('request' => $_SERVER['REQUEST_URI'])
+            );
             return FALSE;
         }
         return TRUE;

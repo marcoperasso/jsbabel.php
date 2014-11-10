@@ -1,38 +1,27 @@
 <?php
 
-function set_user($user) {
-    if (isset($_SESSION))
-        $_SESSION["user"] = serialize($user);
-}
-
-function get_user() {
-    $CI = & get_instance();
-    $CI->load->model('User_model');
-    return (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
-}
-
 function encode_URI_Component($str) {
     $revert = array('%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')');
     return strtr(rawurlencode($str), $revert);
 }
-function hexEncode($s)
-{
+
+function hexEncode($s) {
     return array_shift(unpack('H*', $s));
 }
+
 function htmlSpaceIfEmpty($string) {
     return empty($string) ? '&nbsp;' : html_escape($string);
 }
 
-
 function replace_func($m) {
-     return array_count_values($m) === 1 ? '\\' . $m[0] : "(.*)"; 
+    return array_count_values($m) === 1 ? '\\' . $m[0] : "(.*)";
 }
 
 function match_base_string($match, $string_to_test) {
     // $trimRegExp = "/[\r\n\s]+/m";
     $baseRegExp = "/[-\[\]{}()*+?.,\\^$|#]|(\%\d+\%)/m";
     $pattern = '/' . preg_replace_callback($baseRegExp, "replace_func", $match) . '/m';
-    
+
     return preg_match($pattern, $string_to_test);
 }
 

@@ -38,7 +38,7 @@ class Translator extends MY_Controller {
 
     //returns login page
     public function get_login_page() {
-        $view = $this->load->view('login', '', true);
+        $view = $this->load->view('login.html', '', true);
         $view = hexEncode($view);
         $response = 'jQuery(hexDecode("' . $view . '")).appendTo(document.body);';
         $this->output
@@ -52,7 +52,7 @@ class Translator extends MY_Controller {
         $userid = $this->input->get('1');
         $pwd = $this->input->get('2');
 
-       
+
         $this->load->model('User_model');
         $user = $this->User_model->get_user($userid);
 
@@ -61,7 +61,7 @@ class Translator extends MY_Controller {
         } else if (!$user->verify_password($pwd)) {
             $response = "_jsbMessage('Invalid password')";
         } else {
-            set_user($user);
+            $this->set_user($user);
             $response = "location.reload();";
         }
 
@@ -71,7 +71,7 @@ class Translator extends MY_Controller {
     }
 
     function do_logoff() {
-        set_user(NULL);
+        $this->set_user(NULL);
         $response = "location.reload();";
         $this->output
                 ->set_content_type('text/javascript')
@@ -89,18 +89,20 @@ class Translator extends MY_Controller {
         $clientStringsVer = $this->input->get('vStrings');
         $clientData = new stdClass;
         $clientData->ld = array();
-
+        $host = parse_url($url, PHP_URL_HOST);
         $user = get_user();
-        $site = $this->Site_model->get_site(parse_url($url, PHP_URL_HOST));
+        $site = $this->Site_model->get_site($host);
         //site not yet registered: apply default data
         if (!$site) {
             if ($user) {//user logged: open site manager
                 $adminUrl = BASE_URL . "/mysites";
                 //avoid recursion!
-                if ($url != $adminUrl)
-                $this->output
-                        ->set_content_type('text/javascript')
-                        ->set_output("window.open('" . $adminUrl . "', 'JSBABEL');");
+                if ($url != $adminUrl) {
+                    $adminUrl .= "?host=" . encode_URI_Component($host);
+                    $this->output
+                            ->set_content_type('text/javascript')
+                            ->set_output("window.open('" . $adminUrl . "', 'JSBABEL');");
+                }
             } else {//user not logged: add login button
                 $clientData->bl = "";
                 $clientData->a = "C";

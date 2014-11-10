@@ -19,7 +19,7 @@ class Home extends MY_Controller {
         if ($data->user) {
             $data->user = $data->user->get_public_clone();
         }
-
+        $data->state = $this->get_state();
         $this->output
                 ->set_content_type('text/json')
                 ->set_output(json_encode($data));
