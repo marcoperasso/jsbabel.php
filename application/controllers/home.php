@@ -10,11 +10,21 @@ class Home extends MY_Controller {
     }
 
     public function index() {
-	$this->load_view('home_not_logged', "Welcome to JSBabel");
-	
+        $this->load->view('home_not_logged.html');
     }
 
-    
+    function data() {
+        $data = new stdClass();
+        $data->user = get_user();
+        if ($data->user) {
+            $data->user = $data->user->get_public_clone();
+        }
+
+        $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode($data));
+    }
+
 }
 
 /* End of file welcome.php */

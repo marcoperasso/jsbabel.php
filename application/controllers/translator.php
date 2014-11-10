@@ -52,14 +52,13 @@ class Translator extends MY_Controller {
         $userid = $this->input->get('1');
         $pwd = $this->input->get('2');
 
-        $this->load->library('BCrypt');
-        $bcrypt = new BCrypt(15);
+       
         $this->load->model('User_model');
         $user = $this->User_model->get_user($userid);
 
         if (!$user) {
             $response = "_jsbMessage('Invalid user ID')";
-        } else if (!$bcrypt->verify($pwd, $user->password)) {
+        } else if (!$user->verify_password($pwd)) {
             $response = "_jsbMessage('Invalid password')";
         } else {
             set_user($user);

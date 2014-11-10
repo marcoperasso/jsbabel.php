@@ -35,6 +35,7 @@ function Babel() {
     var stringScript = '/translator/get_translations';
     var getLoginScript = '/translator/get_login_page';
     var translatorScript = '/js/translator.js';
+    var getLogoffScript = '/translator/do_logoff';
     var translations = [];
     var missingTranslations = [];
     var moves = [];
@@ -82,6 +83,9 @@ function Babel() {
     var baseLocale = getCookie("wlbaseLocale");
     this.isDemoMode = function () {
         return demoMode;
+    };
+    this.logoff = function () {
+        tr.addScript(getLogoffScript);
     };
     this.createBasePattern = function (s)
     {

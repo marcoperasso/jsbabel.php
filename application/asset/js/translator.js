@@ -61,8 +61,7 @@
 })();
 
 function Translator() {
-    var getLogoffScript = '/translator/do_logoff';
-    var currentMousePos = {x: -1, y: -1};
+   var currentMousePos = {x: -1, y: -1};
     var orphanScript = '/translator/orphans';
     var beginautotranslateScript = '/translator/begin_autotranslate';
     var endautotranslateScript = '/translator/end_autotranslate';
@@ -122,9 +121,7 @@ function Translator() {
     var autosave = getCookie(autosaveCookie) == "true";
     var popup = getCookie(popupCookie) == "true";
     var toTranslate = [];
-    this.onLogoff = function () {
-        tr.addScript(getLogoffScript);
-    };
+   
     this.onManage = function () {
         alert("Ciao");
     };
@@ -559,7 +556,7 @@ function Translator() {
             setAutosaveButtonProperties();
             setBtnSaveImage();
             addToolButton("jsbmanage", "edit", sManage, tr.onManage, true, false, false, 77);
-            addToolButton("jsblogoff", "logoff", sLogoff, tr.onLogoff, true, false, false, 27);
+            addToolButton("jsblogoff", "logoff", sLogoff, tr.logoff, true, false, false, 27);
         }
 
         var jBody = jQuery(document.body);

@@ -7,6 +7,9 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(css|js|img)/(.+)$ jsbabel/application/asset/$1/$2 [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(templates)/(.+)$ jsbabel/application/views/$1/$2 [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)$ jsbabel/index.php?/$1 [L]
 

@@ -10,7 +10,7 @@ class MySites extends MY_Controller {
     }
 
     public function index() {
-	$this->load_view('my_sites', "My sites");
+	$this->load->view('my_sites.html');
     }
 
     

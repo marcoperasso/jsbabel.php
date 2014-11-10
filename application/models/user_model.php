@@ -31,6 +31,21 @@ class User_model extends MY_Model {
         return $this->name . ' ' . $this->surname;
     }
 
+    public function verify_password($test) {
+        $this->load->library('BCrypt');
+        $bcrypt = new BCrypt(15);
+        return $bcrypt->verify($test, $this->password);
+    }
+
+    public function get_public_clone() {
+        $clone = new stdClass();
+        $clone->userid = $this->userId;
+        $clone->mail = $this->mail;
+        $clone->name = $this->name;
+        $clone->surname = $this->surname;
+        return $clone;
+    }
+
     public function get_user($userId) {
         $query = $this->db->get_where($this->t, array($this->c['userId'] => $userId));
         $row = $query->row();

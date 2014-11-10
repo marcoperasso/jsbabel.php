@@ -1,0 +1,24 @@
+<div class="header row">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="" title="Pagina principale"><img alt="logo" class = 'logo' src="img/logo.png"/></a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav" ng-show="data.user">
+
+                <li class="user"><a href="user">My data</a></li>
+                <li class="mysites"><a href="mysites">My sites</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right" style = "padding-right: 30px">
+                <li class="dropdown" ng-show="data.user">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Hello, {{data.user.name + " " + data.user.surname}}</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="javascript:__babel.logoff()">Logoff</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+        </div> 
+    </nav>
+
+</div>
