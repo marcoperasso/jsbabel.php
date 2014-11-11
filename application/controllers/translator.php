@@ -90,14 +90,14 @@ class Translator extends MY_Controller {
         $clientData = new stdClass;
         $clientData->ld = array();
         $host = parse_url($url, PHP_URL_HOST);
-        $user = get_user();
+        $user = $this->get_user();
         $site = $this->Site_model->get_site($host);
         //site not yet registered: apply default data
         if (!$site) {
             if ($user) {//user logged: open site manager
                 $adminUrl = BASE_URL . "/mysites";
                 //avoid recursion!
-                if ($url != $adminUrl) {
+                if (parse_url($url, PHP_URL_PATH) != parse_url($adminUrl, PHP_URL_PATH)) {
                     $adminUrl .= "?host=" . encode_URI_Component($host);
                     $this->output
                             ->set_content_type('text/javascript')
@@ -113,6 +113,7 @@ class Translator extends MY_Controller {
                         ->set_content_type('text/javascript')
                         ->set_output("__babel.setTranslationData(" . json_encode($clientData) . ", 0, '', 0);");
             }
+            $this->output->set_content_type('text/javascript');
             return;
         }
         $serverVer = $site->translation_version + CLIENT_CACHE_VERSION;

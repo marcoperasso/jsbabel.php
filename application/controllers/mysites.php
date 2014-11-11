@@ -17,10 +17,15 @@ class MySites extends MY_Controller {
 
         $this->load->model('Site_model');
         $site = $this->Site_model->get_site($host);
-        if (!$site)
-        {
+        if (!$site) {
             $site = new Site_model();
             $site->host = $host;
+            $site->anchor = 'L';
+            $site->base_locale = '';
+            $site->offset = 0;
+            $site->top = 0;
+            $site->translation_version = 0;
+            $site->save();
         }
         $this->load->view('mysites.html');
     }

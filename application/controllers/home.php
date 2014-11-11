@@ -15,7 +15,7 @@ class Home extends MY_Controller {
 
     function data() {
         $data = new stdClass();
-        $data->user = get_user();
+        $data->user = $this->get_user();
         if ($data->user) {
             $data->user = $data->user->get_public_clone();
         }
