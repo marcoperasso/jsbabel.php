@@ -42,11 +42,17 @@ class Site_users_model extends MY_Model {
      */
 
     public function get_user_sites($userId) {
-        $query = $this->db->get_where($this->t, array($this->c['userId'] => $userId));
+        $this->load->model("Site_model");
+        $this->db->select('*');
+        $this->db->from($this->t);
+        $this->db->join($this->Site_model->t, $this->c['siteId'] ."=". $this->Site_model->c["id"]);
+        $this->db->where('USERID', $userId);
+        $query = $this->db->get();
         $rows = array();
         foreach ($query->result() as $row) {
             $site_user = new stdClass;
             $this->row_to_object($row, $site_user);
+            $this->Site_model->row_to_object($row, $site_user);
             array_push($rows, $site_user);
         }
         return $rows;

@@ -37,8 +37,18 @@
         $http.get("home/data")
                 .success(function (response) {
                     $scope.data = response;
-                    if (window.controllerReady)
-                        window.controllerReady($scope);
+//give a chance to the page to specify its own data request
+                    if (window.controllerRequest)
+                    {
+                        $http.get(window.controllerRequest).success(function (response)
+                        {
+                            $scope.pageData = response;
+                            if (window.controllerReady)
+                                window.controllerReady($scope);//notify the page that the controller has been loaded
+                        })
+                    }
+                    else if (window.controllerReady)
+                        window.controllerReady($scope);//notify the page that the controller has been loaded
                 });
     }
 </script>

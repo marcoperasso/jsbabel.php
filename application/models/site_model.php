@@ -46,5 +46,14 @@ class Site_model extends MY_Model {
         $this->row_to_object($row, $this);
         return $this;
     }
+    
+      public function get_sites($userId) {
+        $query = $this->db->get_where($this->t, array($this->c['host'] => $host));
+        $row = $query->row();
+        if (!$row)
+            return FALSE;
+        $this->row_to_object($row, $this);
+        return $this;
+    }
 
 }

@@ -3,6 +3,7 @@
     <head>
         <link rel="import" href="templates/header.html">
         <title>My sites</title>
+        <script type="text/javascript" src="js/jquery.selectlist.js"></script>
     </head>
 
     <body>
@@ -11,14 +12,179 @@
 
                 <div class="col-md-3"></div>
                 <div class="col-md-6 center-text">
-                    
-                    <h1>Welcome to JSBabel</h1>
-                    <h2>My sites</h2>
+
+                    <h1>My sites</h1>
+                    <p ng-show="!pageData.sites">You currently have no sites to translate.</p>
+                    <p ng-show="pageData.sites">You are translating these sites:</p>
 
                 </div>
                 <div class="col-md-3"></div>
+                <div >
+                    <form method="post" action="servlet/settings" ng-repeat="site in pageData.sites">
+                        <input type="hidden" name="siteid" class="siteid" value="{{site.siteId}}">
+                        <input type="hidden" name="sitedomain" class="sitedomain" value="{{site.host}}>">
+                        <span>zzz</span>
+                        <fieldset class="outerfields">
+                            <legend>
+                                <img src="img/delete.png" class="deletesite clickable" alt="Remove this site" title="Remove this site"/>
+                                <span class="jsb_notranslate">{{site.host}}</span>
+                            </legend>
+                            <table>
+                                <tr>
+                                    <td><fieldset class="innerfields">
+                                            <Legend>Original site language</Legend>
+
+                                            <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate">
+                                                <!--                                                                                            <%
+                                                                                                                                            String bl = site.getBaseLanguage();
+                                                                                                                                            if (Helper.isNullOrEmpty(bl)) {
+                                                                                                                                            bl = Helper.getLanguageCode(request.getLocale());
+                                                                                                                                            }
+                                                                                                                                            for (Locale l : sortedLocales) {
+                                                                                                                                            %>-->
+                                                <option ng-repeat="loc in pageData.locales" value="{{loc.code}}">
+                                                    {{loc.displayName}}
+                                                </option>
+                                            </select>
+                                        </fieldset>
+                                        <fieldset class="innerfields">
+                                            <!--                                        <legend>Anchor translation toolbar to:</legend>
+                                                                                    <input type="radio" name="anchor" value="L" class="siteproperty"
+                                                                                           <%=anchor == 'L' ? "checked" : ""%>>left margin of the page<BR />
+                                                                                    <input type="radio" name="anchor" value="C" class="siteproperty"
+                                                                                           <%=anchor == 'C' ? "checked" : ""%>>center of the page<BR />-->
+                                        </fieldset>
+                                    </td>
+                                    <td>
+                                        <fieldset class="innerfields">
+                                            <legend>Translated languages</legend>
+                                            <!--                                        <select multiple id="targetLanguage" name="targetLanguage"
+                                                                                            class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
+                                                                                        <%
+                                                                                        for (Locale l : sortedLocales) {
+                                                                                        %>
+                                                                                        <option 
+                                                                                            <%=site.containsTargetLanguage(Helper.getLanguageCode(l)) ? "selected=\"selected\"" : ""%>
+                                                                                            value="<%=Helper.getLanguageCode(l)%>">
+                                                                                            <%=l.getDisplayName(l)%>
+                                                                                    </option>
+                                                                                </select>-->
+                                        </fieldset>
+                                    </td>
+                                    <td>
+                                        <!--                                <fieldset class="innerfields">
+                                                                            <legend>Manage site translations</legend>
+                                                                            <%
+                                                                            for (TargetLocale tl : site.getTargetLocales()) {
+                                                                            Locale l = Helper.fromLanguageCode(tl.getLocale());
+                                                                            %>
+                                                                            <a title="<%=l.getDisplayName(l)%>" href="sitetranslations.jsp?siteid=<%=site.getId()%>&targetlocale=<%=tl.getLocale()%>" ><%=l.getDisplayName(l)%></a>
+                                                                        </fieldset>-->
+                                    </td>
+                                </tr>
+                            </table>
+                            <div class="centercontent">
+                                <a title="Translate" href="javascript:void(0)" class="translatesite">Translate this site</a>
+
+                            </div>
+                        </fieldset>
+                    </form> 
+                </div>
+                <form id="addsiteform">
+                    <fieldset class="outerfields">
+                        <legend>Add a new site</legend>
+                        <label for="addsite">Site url: </label>
+                        <input id="sitename" style="width: 300px;" name="sitename" type="text">
+                        <input type="submit" id="addbtn" value="Add">
+                    </fieldset>
+                </form>
             </div>
-            
+
         </div>
+        <script type="text/javascript">
+
+            //this is the request than angularjs will send to server to populate controller
+            //see header.html
+            window.controllerRequest = "mysites/site_list";
+
+            this.somethingChanged = function () {
+                elementChanged(this);
+            }
+            this.elementChanged = function (el)
+            {
+                var data = $(el).parents("form").serialize();
+                $.post("/servlet/mysites?cmd=sitechange", data, function (res) {
+                    if (!res.success)
+                        alert(res.message);
+                });
+            }
+            $(document).ready(function () {
+
+                $('select.targetLanguage').selectList({
+                    addAnimate: function (item, callback) {
+                        $(item).slideDown(500, callback);
+                    },
+                    removeAnimate: function (item, callback) {
+                        $(item).slideUp(500, callback);
+                    },
+                    onRemove: elementChanged,
+                    template: '<li title="Remove"><img src="/servlet/flag?loc=%value%"/>%text%</li>'
+                });
+                $('#addbtn').click(function (e) {
+                    e.preventDefault();
+                    beginWaitingMessage();
+                    var formData = $(this).parents("form").serialize();
+                    $.getJSON("/servlet/mysites", {"cmd": "checksite", "shouldnotexist": true, "sitename": $("#sitename").val()}, function (data) {
+                        endWaitingMessage();
+                        if (data.success == true)
+                        {
+                            $.post("/servlet/mysites?cmd=add", formData, function (res) {
+                                if (res.success)
+                                    location.reload();
+                                else
+                                    alert(res.message);
+                            });
+                        }
+                        else
+                            alert(data.message);
+                    });
+                });
+                $('.deletesite').click(function () {
+                    if (confirm(_jsb("Are you sure to remove this site?")))
+                    {
+                        beginWaitingMessage();
+                        var f = $(this).parents("form");
+                        var siteIdField = $(".siteid", f);
+                        $.getJSON("/servlet/mysites", {"cmd": "deletesite", "siteid": siteIdField.val()}, function (data) {
+                            endWaitingMessage();
+                            if (data.success == true)
+                                f.remove();
+                            else
+                                alert(data.message);
+                        });
+                    }
+                });
+                $('.translatesite').click(function () {
+                    var f = $(this).parents("form");
+                    var siteIdField = $(".siteid", f);
+                    var siteDomainField = $(".sitedomain", f);
+                    open(siteDomainField.val(), siteIdField.val());
+                });
+                $(".siteproperty").change(somethingChanged);
+                var sample = "http://www.your site.com";
+                var sitename = $("#sitename");
+                sitename.focus(function () {
+                    if (sitename.val() == sample)
+                        sitename.val("http://");
+                });
+                sitename.focusout(function () {
+                    if (sitename.val() == "http://")
+                        sitename.val(sample);
+                });
+                sitename.val(sample);
+            }
+            );
+        </script>
     </body>
+
 </html>

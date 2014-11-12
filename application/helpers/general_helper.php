@@ -242,222 +242,227 @@ function get_country($locale) {
     }
 }
 
+function get_locales() {
+    static $locales = array(
+        'ar-SA' => 'العربية (المملكة العربية السعودية)',
+        'bg-BG' => 'български (България)',
+        'ca-ES' => 'català (català)',
+        'zh-TW' => '中文(台灣)',
+        'cs-CZ' => 'čeština (Česká republika)',
+        'da-DK' => 'dansk (Danmark)',
+        'de-DE' => 'Deutsch (Deutschland)',
+        'el-GR' => 'Ελληνικά (Ελλάδα)',
+        'en-US' => 'English (United States)',
+        'fi-FI' => 'suomi (Suomi)',
+        'fr-FR' => 'français (France)',
+        'he-IL' => 'עברית (ישראל)',
+        'hu-HU' => 'magyar (Magyarország)',
+        'is-IS' => 'íslenska (Ísland)',
+        'it-IT' => 'italiano (Italia)',
+        'ja-JP' => '日本語 (日本)',
+        'ko-KR' => '한국어 (대한민국)',
+        'nl-NL' => 'Nederlands (Nederland)',
+        'nb-NO' => 'norsk, bokmål (Norge)',
+        'pl-PL' => 'polski (Polska)',
+        'pt-BR' => 'Português (Brasil)',
+        'rm-CH' => 'Rumantsch (Svizra)',
+        'ro-RO' => 'română (România)',
+        'ru-RU' => 'русский (Россия)',
+        'hr-HR' => 'hrvatski (Hrvatska)',
+        'sk-SK' => 'slovenčina (Slovenská republika)',
+        'sq-AL' => 'shqipe (Shqipëria)',
+        'sv-SE' => 'svenska (Sverige)',
+        'th-TH' => 'ไทย (ไทย)',
+        'tr-TR' => 'Türkçe (Türkiye)',
+        'ur-PK' => 'اُردو (پاکستان)',
+        'id-ID' => 'Bahasa Indonesia (Indonesia)',
+        'uk-UA' => 'українська (Україна)',
+        'be-BY' => 'Беларускі (Беларусь)',
+        'sl-SI' => 'slovenski (Slovenija)',
+        'et-EE' => 'eesti (Eesti)',
+        'lv-LV' => 'latviešu (Latvija)',
+        'lt-LT' => 'lietuvių (Lietuva)',
+        'tg-Cyrl-TJ' => 'Тоҷикӣ (Тоҷикистон)',
+        'fa-IR' => 'فارسى (ایران)',
+        'vi-VN' => 'Tiếng Việt (Việt Nam)',
+        'hy-AM' => 'Հայերեն (Հայաստան)',
+        'az-Latn-AZ' => 'Azərbaycan­ılı (Azərbaycan)',
+        'eu-ES' => 'euskara (euskara)',
+        'hsb-DE' => 'hornjoserbšćina (Němska)',
+        'mk-MK' => 'македонски јазик (Македонија)',
+        'tn-ZA' => 'Setswana (Aforika Borwa)',
+        'xh-ZA' => 'isiXhosa (uMzantsi Afrika)',
+        'zu-ZA' => 'isiZulu (iNingizimu Afrika)',
+        'af-ZA' => 'Afrikaans (Suid Afrika)',
+        'ka-GE' => 'ქართული (საქართველო)',
+        'fo-FO' => 'føroyskt (Føroyar)',
+        'hi-IN' => 'हिंदी (भारत)',
+        'mt-MT' => 'Malti (Malta)',
+        'se-NO' => 'davvisámegiella (Norga)',
+        'ms-MY' => 'Bahasa Melayu (Malaysia)',
+        'kk-KZ' => 'Қазақ (Қазақстан)',
+        'ky-KG' => 'Кыргыз (Кыргызстан)',
+        'sw-KE' => 'Kiswahili (Kenya)',
+        'tk-TM' => 'türkmençe (Türkmenistan)',
+        'uz-Latn-UZ' => 'U\'zbek (U\'zbekiston Respublikasi)',
+        'tt-RU' => 'Татар (Россия)',
+        'bn-IN' => 'বাংলা (ভারত)',
+        'pa-IN' => 'ਪੰਜਾਬੀ (ਭਾਰਤ)',
+        'gu-IN' => 'ગુજરાતી (ભારત)',
+        'or-IN' => 'ଓଡ଼ିଆ (ଭାରତ)',
+        'ta-IN' => 'தமிழ் (இந்தியா)',
+        'te-IN' => 'తెలుగు (భారత దేశం)',
+        'kn-IN' => 'ಕನ್ನಡ (ಭಾರತ)',
+        'ml-IN' => 'മലയാളം (ഭാരതം)',
+        'as-IN' => 'অসমীয়া (ভাৰত)',
+        'mr-IN' => 'मराठी (भारत)',
+        'sa-IN' => 'संस्कृत (भारतम्)',
+        'mn-MN' => 'Монгол хэл (Монгол улс)',
+        'bo-CN' => 'བོད་ཡིག (ཀྲུང་ཧྭ་མི་དམངས་སྤྱི་མཐུན་རྒྱལ་ཁབ།)',
+        'cy-GB' => 'Cymraeg (y Deyrnas Unedig)',
+        'km-KH' => 'ខ្មែរ (កម្ពុជា)',
+        'lo-LA' => 'ລາວ (ສ.ປ.ປ. ລາວ)',
+        'gl-ES' => 'galego (galego)',
+        'kok-IN' => 'कोंकणी (भारत)',
+        'syr-SY' => 'ܣܘܪܝܝܐ (سوريا)',
+        'si-LK' => 'සිංහල (ශ්‍රී ලංකා)',
+        'iu-Cans-CA' => 'ᐃᓄᒃᑎᑐᑦ (ᑲᓇᑕᒥ)',
+        'am-ET' => 'አማርኛ (ኢትዮጵያ)',
+        'ne-NP' => 'नेपाली (नेपाल)',
+        'fy-NL' => 'Frysk (Nederlân)',
+        'ps-AF' => 'پښتو (افغانستان)',
+        'fil-PH' => 'Filipino (Pilipinas)',
+        'dv-MV' => 'ދިވެހިބަސް (ދިވެހި ރާއްޖެ)',
+        'ha-Latn-NG' => 'Hausa (Nigeria)',
+        'yo-NG' => 'Yoruba (Nigeria)',
+        'quz-BO' => 'runasimi (Qullasuyu)',
+        'nso-ZA' => 'Sesotho sa Leboa (Afrika Borwa)',
+        'ba-RU' => 'Башҡорт (Россия)',
+        'lb-LU' => 'Lëtzebuergesch (Luxembourg)',
+        'kl-GL' => 'kalaallisut (Kalaallit Nunaat)',
+        'ig-NG' => 'Igbo (Nigeria)',
+        'ii-CN' => 'ꆈꌠꁱꂷ (ꍏꉸꏓꂱꇭꉼꇩ)',
+        'arn-CL' => 'Mapudungun (Chile)',
+        'moh-CA' => 'Kanien\'kéha',
+        'br-FR' => 'brezhoneg (Frañs)',
+        'ug-CN' => 'ئۇيغۇرچە (جۇڭخۇا خەلق جۇمھۇرىيىتى)',
+        'mi-NZ' => 'Reo Māori (Aotearoa)',
+        'oc-FR' => 'Occitan (França)',
+        'co-FR' => 'Corsu (France)',
+        'gsw-FR' => 'Elsässisch (Frànkrisch)',
+        'sah-RU' => 'саха (Россия)',
+        'qut-GT' => 'K\'iche (Guatemala)',
+        'rw-RW' => 'Kinyarwanda (Rwanda)',
+        'wo-SN' => 'Wolof (Sénégal)',
+        'prs-AF' => 'درى (افغانستان)',
+        'gd-GB' => 'Gàidhlig (An Rìoghachd Aonaichte)',
+        'ar-IQ' => 'العربية (العراق)',
+        'zh-CN' => '中文(中华人民共和国)',
+        'de-CH' => 'Deutsch (Schweiz)',
+        'en-GB' => 'English (United Kingdom)',
+        'es-MX' => 'Español (México)',
+        'fr-BE' => 'français (Belgique)',
+        'it-CH' => 'italiano (Svizzera)',
+        'nl-BE' => 'Nederlands (België)',
+        'nn-NO' => 'norsk, nynorsk (Noreg)',
+        'pt-PT' => 'português (Portugal)',
+        'sr-Latn-CS' => 'srpski (Srbija i Crna Gora (Prethodno))',
+        'sv-FI' => 'svenska (Finland)',
+        'az-Cyrl-AZ' => 'Азәрбајҹан (Азәрбајҹан)',
+        'dsb-DE' => 'dolnoserbšćina (Nimska)',
+        'se-SE' => 'davvisámegiella (Ruoŧŧa)',
+        'ga-IE' => 'Gaeilge (Éire)',
+        'ms-BN' => 'Bahasa Melayu (Brunei Darussalam)',
+        'uz-Cyrl-UZ' => 'Ўзбек (Ўзбекистон)',
+        'bn-BD' => 'বাংলা (বাংলাদেশ)',
+        'mn-Mong-CN' => 'ᠮᠤᠨᠭᠭᠤᠯ ᠬᠡᠯᠡ (ᠪᠦᠭᠦᠳᠡ ᠨᠠᠢᠷᠠᠮᠳᠠᠬᠤ ᠳᠤᠮᠳᠠᠳᠤ ᠠᠷᠠᠳ ᠣᠯᠣᠰ)',
+        'iu-Latn-CA' => 'Inuktitut (Kanatami)',
+        'tzm-Latn-DZ' => 'Tamazight (Djazaïr)',
+        'quz-EC' => 'runasimi (Ecuador)',
+        'ar-EG' => 'العربية (مصر)',
+        'zh-HK' => '中文(香港特別行政區)',
+        'de-AT' => 'Deutsch (Österreich)',
+        'en-AU' => 'English (Australia)',
+        'es-ES' => 'Español (España, alfabetización internacional)',
+        'fr-CA' => 'français (Canada)',
+        'sr-Cyrl-CS' => 'српски (Србија и Црна Гора (Претходно))',
+        'se-FI' => 'davvisámegiella (Suopma)',
+        'quz-PE' => 'runasimi (Piruw)',
+        'ar-LY' => 'العربية (ليبيا)',
+        'zh-SG' => '中文(新加坡)',
+        'de-LU' => 'Deutsch (Luxemburg)',
+        'en-CA' => 'English (Canada)',
+        'es-GT' => 'Español (Guatemala)',
+        'fr-CH' => 'français (Suisse)',
+        'hr-BA' => 'hrvatski (Bosna i Hercegovina)',
+        'smj-NO' => 'julevusámegiella (Vuodna)',
+        'ar-DZ' => 'العربية (الجزائر)',
+        'zh-MO' => '中文(澳門特別行政區)',
+        'de-LI' => 'Deutsch (Liechtenstein)',
+        'en-NZ' => 'English (New Zealand)',
+        'es-CR' => 'Español (Costa Rica)',
+        'fr-LU' => 'français (Luxembourg)',
+        'bs-Latn-BA' => 'bosanski (Bosna i Hercegovina)',
+        'smj-SE' => 'julevusámegiella (Svierik)',
+        'ar-MA' => 'العربية (المملكة المغربية)',
+        'en-IE' => 'English (Ireland)',
+        'es-PA' => 'Español (Panamá)',
+        'fr-MC' => 'français (Principauté de Monaco)',
+        'sr-Latn-BA' => 'srpski (Bosna i Hercegovina)',
+        'sma-NO' => 'åarjelsaemiengiele (Nöörje)',
+        'ar-TN' => 'العربية (تونس)',
+        'en-ZA' => 'English (South Africa)',
+        'es-DO' => 'Español (República Dominicana)',
+        'sr-Cyrl-BA' => 'српски (Босна и Херцеговина)',
+        'sma-SE' => 'åarjelsaemiengiele (Sveerje)',
+        'ar-OM' => 'العربية (عمان)',
+        'en-JM' => 'English (Jamaica)',
+        'es-VE' => 'Español (Republica Bolivariana de Venezuela)',
+        'bs-Cyrl-BA' => 'босански (Босна и Херцеговина)',
+        'sms-FI' => 'sääm´ǩiõll (Lää´ddjânnam)',
+        'ar-YE' => 'العربية (اليمن)',
+        'en-029' => 'English (Caribbean)',
+        'es-CO' => 'Español (Colombia)',
+        'sr-Latn-RS' => 'srpski (Srbija)',
+        'smn-FI' => 'sämikielâ (Suomâ)',
+        'ar-SY' => 'العربية (سوريا)',
+        'en-BZ' => 'English (Belize)',
+        'es-PE' => 'Español (Perú)',
+        'sr-Cyrl-RS' => 'српски (Србија)',
+        'ar-JO' => 'العربية (الأردن)',
+        'en-TT' => 'English (Trinidad y Tobago)',
+        'es-AR' => 'Español (Argentina)',
+        'sr-Latn-ME' => 'srpski (Crna Gora)',
+        'ar-LB' => 'العربية (لبنان)',
+        'en-ZW' => 'English (Zimbabwe)',
+        'es-EC' => 'Español (Ecuador)',
+        'sr-Cyrl-ME' => 'српски (Црна Гора)',
+        'ar-KW' => 'العربية (الكويت)',
+        'en-PH' => 'English (Philippines)',
+        'es-CL' => 'Español (Chile)',
+        'ar-AE' => 'العربية (الإمارات العربية المتحدة)',
+        'es-UY' => 'Español (Uruguay)',
+        'ar-BH' => 'العربية (البحرين)',
+        'es-PY' => 'Español (Paraguay)',
+        'ar-QA' => 'العربية (قطر)',
+        'en-IN' => 'English (India)',
+        'es-BO' => 'Español (Bolivia)',
+        'en-MY' => 'English (Malaysia)',
+        'es-SV' => 'Español (El Salvador)',
+        'en-SG' => 'English (Singapore)',
+        'es-HN' => 'Español (Honduras)',
+        'es-NI' => 'Español (Nicaragua)',
+        'es-PR' => 'Español (Puerto Rico)',
+        'es-US' => 'Español (Estados Unidos)');
+
+    return $locales;
+}
+
 function get_display_name($locale) {
-    switch ($locale) {
-        case 'ar-SA': return 'العربية (المملكة العربية السعودية)';
-        case 'bg-BG': return 'български (България)';
-        case 'ca-ES': return 'català (català)';
-        case 'zh-TW': return '中文(台灣)';
-        case 'cs-CZ': return 'čeština (Česká republika)';
-        case 'da-DK': return 'dansk (Danmark)';
-        case 'de-DE': return 'Deutsch (Deutschland)';
-        case 'el-GR': return 'Ελληνικά (Ελλάδα)';
-        case 'en-US': return 'English (United States)';
-        case 'fi-FI': return 'suomi (Suomi)';
-        case 'fr-FR': return 'français (France)';
-        case 'he-IL': return 'עברית (ישראל)';
-        case 'hu-HU': return 'magyar (Magyarország)';
-        case 'is-IS': return 'íslenska (Ísland)';
-        case 'it-IT': return 'italiano (Italia)';
-        case 'ja-JP': return '日本語 (日本)';
-        case 'ko-KR': return '한국어 (대한민국)';
-        case 'nl-NL': return 'Nederlands (Nederland)';
-        case 'nb-NO': return 'norsk, bokmål (Norge)';
-        case 'pl-PL': return 'polski (Polska)';
-        case 'pt-BR': return 'Português (Brasil)';
-        case 'rm-CH': return 'Rumantsch (Svizra)';
-        case 'ro-RO': return 'română (România)';
-        case 'ru-RU': return 'русский (Россия)';
-        case 'hr-HR': return 'hrvatski (Hrvatska)';
-        case 'sk-SK': return 'slovenčina (Slovenská republika)';
-        case 'sq-AL': return 'shqipe (Shqipëria)';
-        case 'sv-SE': return 'svenska (Sverige)';
-        case 'th-TH': return 'ไทย (ไทย)';
-        case 'tr-TR': return 'Türkçe (Türkiye)';
-        case 'ur-PK': return 'اُردو (پاکستان)';
-        case 'id-ID': return 'Bahasa Indonesia (Indonesia)';
-        case 'uk-UA': return 'українська (Україна)';
-        case 'be-BY': return 'Беларускі (Беларусь)';
-        case 'sl-SI': return 'slovenski (Slovenija)';
-        case 'et-EE': return 'eesti (Eesti)';
-        case 'lv-LV': return 'latviešu (Latvija)';
-        case 'lt-LT': return 'lietuvių (Lietuva)';
-        case 'tg-Cyrl-TJ': return 'Тоҷикӣ (Тоҷикистон)';
-        case 'fa-IR': return 'فارسى (ایران)';
-        case 'vi-VN': return 'Tiếng Việt (Việt Nam)';
-        case 'hy-AM': return 'Հայերեն (Հայաստան)';
-        case 'az-Latn-AZ': return 'Azərbaycan­ılı (Azərbaycan)';
-        case 'eu-ES': return 'euskara (euskara)';
-        case 'hsb-DE': return 'hornjoserbšćina (Němska)';
-        case 'mk-MK': return 'македонски јазик (Македонија)';
-        case 'tn-ZA': return 'Setswana (Aforika Borwa)';
-        case 'xh-ZA': return 'isiXhosa (uMzantsi Afrika)';
-        case 'zu-ZA': return 'isiZulu (iNingizimu Afrika)';
-        case 'af-ZA': return 'Afrikaans (Suid Afrika)';
-        case 'ka-GE': return 'ქართული (საქართველო)';
-        case 'fo-FO': return 'føroyskt (Føroyar)';
-        case 'hi-IN': return 'हिंदी (भारत)';
-        case 'mt-MT': return 'Malti (Malta)';
-        case 'se-NO': return 'davvisámegiella (Norga)';
-        case 'ms-MY': return 'Bahasa Melayu (Malaysia)';
-        case 'kk-KZ': return 'Қазақ (Қазақстан)';
-        case 'ky-KG': return 'Кыргыз (Кыргызстан)';
-        case 'sw-KE': return 'Kiswahili (Kenya)';
-        case 'tk-TM': return 'türkmençe (Türkmenistan)';
-        case 'uz-Latn-UZ': return 'U\'zbek (U\'zbekiston Respublikasi)';
-        case 'tt-RU': return 'Татар (Россия)';
-        case 'bn-IN': return 'বাংলা (ভারত)';
-        case 'pa-IN': return 'ਪੰਜਾਬੀ (ਭਾਰਤ)';
-        case 'gu-IN': return 'ગુજરાતી (ભારત)';
-        case 'or-IN': return 'ଓଡ଼ିଆ (ଭାରତ)';
-        case 'ta-IN': return 'தமிழ் (இந்தியா)';
-        case 'te-IN': return 'తెలుగు (భారత దేశం)';
-        case 'kn-IN': return 'ಕನ್ನಡ (ಭಾರತ)';
-        case 'ml-IN': return 'മലയാളം (ഭാരതം)';
-        case 'as-IN': return 'অসমীয়া (ভাৰত)';
-        case 'mr-IN': return 'मराठी (भारत)';
-        case 'sa-IN': return 'संस्कृत (भारतम्)';
-        case 'mn-MN': return 'Монгол хэл (Монгол улс)';
-        case 'bo-CN': return 'བོད་ཡིག (ཀྲུང་ཧྭ་མི་དམངས་སྤྱི་མཐུན་རྒྱལ་ཁབ།)';
-        case 'cy-GB': return 'Cymraeg (y Deyrnas Unedig)';
-        case 'km-KH': return 'ខ្មែរ (កម្ពុជា)';
-        case 'lo-LA': return 'ລາວ (ສ.ປ.ປ. ລາວ)';
-        case 'gl-ES': return 'galego (galego)';
-        case 'kok-IN': return 'कोंकणी (भारत)';
-        case 'syr-SY': return 'ܣܘܪܝܝܐ (سوريا)';
-        case 'si-LK': return 'සිංහල (ශ්‍රී ලංකා)';
-        case 'iu-Cans-CA': return 'ᐃᓄᒃᑎᑐᑦ (ᑲᓇᑕᒥ)';
-        case 'am-ET': return 'አማርኛ (ኢትዮጵያ)';
-        case 'ne-NP': return 'नेपाली (नेपाल)';
-        case 'fy-NL': return 'Frysk (Nederlân)';
-        case 'ps-AF': return 'پښتو (افغانستان)';
-        case 'fil-PH': return 'Filipino (Pilipinas)';
-        case 'dv-MV': return 'ދިވެހިބަސް (ދިވެހި ރާއްޖެ)';
-        case 'ha-Latn-NG': return 'Hausa (Nigeria)';
-        case 'yo-NG': return 'Yoruba (Nigeria)';
-        case 'quz-BO': return 'runasimi (Qullasuyu)';
-        case 'nso-ZA': return 'Sesotho sa Leboa (Afrika Borwa)';
-        case 'ba-RU': return 'Башҡорт (Россия)';
-        case 'lb-LU': return 'Lëtzebuergesch (Luxembourg)';
-        case 'kl-GL': return 'kalaallisut (Kalaallit Nunaat)';
-        case 'ig-NG': return 'Igbo (Nigeria)';
-        case 'ii-CN': return 'ꆈꌠꁱꂷ (ꍏꉸꏓꂱꇭꉼꇩ)';
-        case 'arn-CL': return 'Mapudungun (Chile)';
-        case 'moh-CA': return 'Kanien\'kéha';
-        case 'br-FR': return 'brezhoneg (Frañs)';
-        case 'ug-CN': return 'ئۇيغۇرچە (جۇڭخۇا خەلق جۇمھۇرىيىتى)';
-        case 'mi-NZ': return 'Reo Māori (Aotearoa)';
-        case 'oc-FR': return 'Occitan (França)';
-        case 'co-FR': return 'Corsu (France)';
-        case 'gsw-FR': return 'Elsässisch (Frànkrisch)';
-        case 'sah-RU': return 'саха (Россия)';
-        case 'qut-GT': return 'K\'iche (Guatemala)';
-        case 'rw-RW': return 'Kinyarwanda (Rwanda)';
-        case 'wo-SN': return 'Wolof (Sénégal)';
-        case 'prs-AF': return 'درى (افغانستان)';
-        case 'gd-GB': return 'Gàidhlig (An Rìoghachd Aonaichte)';
-        case 'ar-IQ': return 'العربية (العراق)';
-        case 'zh-CN': return '中文(中华人民共和国)';
-        case 'de-CH': return 'Deutsch (Schweiz)';
-        case 'en-GB': return 'English (United Kingdom)';
-        case 'es-MX': return 'Español (México)';
-        case 'fr-BE': return 'français (Belgique)';
-        case 'it-CH': return 'italiano (Svizzera)';
-        case 'nl-BE': return 'Nederlands (België)';
-        case 'nn-NO': return 'norsk, nynorsk (Noreg)';
-        case 'pt-PT': return 'português (Portugal)';
-        case 'sr-Latn-CS': return 'srpski (Srbija i Crna Gora (Prethodno))';
-        case 'sv-FI': return 'svenska (Finland)';
-        case 'az-Cyrl-AZ': return 'Азәрбајҹан (Азәрбајҹан)';
-        case 'dsb-DE': return 'dolnoserbšćina (Nimska)';
-        case 'se-SE': return 'davvisámegiella (Ruoŧŧa)';
-        case 'ga-IE': return 'Gaeilge (Éire)';
-        case 'ms-BN': return 'Bahasa Melayu (Brunei Darussalam)';
-        case 'uz-Cyrl-UZ': return 'Ўзбек (Ўзбекистон)';
-        case 'bn-BD': return 'বাংলা (বাংলাদেশ)';
-        case 'mn-Mong-CN': return 'ᠮᠤᠨᠭᠭᠤᠯ ᠬᠡᠯᠡ (ᠪᠦᠭᠦᠳᠡ ᠨᠠᠢᠷᠠᠮᠳᠠᠬᠤ ᠳᠤᠮᠳᠠᠳᠤ ᠠᠷᠠᠳ ᠣᠯᠣᠰ)';
-        case 'iu-Latn-CA': return 'Inuktitut (Kanatami)';
-        case 'tzm-Latn-DZ': return 'Tamazight (Djazaïr)';
-        case 'quz-EC': return 'runasimi (Ecuador)';
-        case 'ar-EG': return 'العربية (مصر)';
-        case 'zh-HK': return '中文(香港特別行政區)';
-        case 'de-AT': return 'Deutsch (Österreich)';
-        case 'en-AU': return 'English (Australia)';
-        case 'es-ES': return 'Español (España, alfabetización internacional)';
-        case 'fr-CA': return 'français (Canada)';
-        case 'sr-Cyrl-CS': return 'српски (Србија и Црна Гора (Претходно))';
-        case 'se-FI': return 'davvisámegiella (Suopma)';
-        case 'quz-PE': return 'runasimi (Piruw)';
-        case 'ar-LY': return 'العربية (ليبيا)';
-        case 'zh-SG': return '中文(新加坡)';
-        case 'de-LU': return 'Deutsch (Luxemburg)';
-        case 'en-CA': return 'English (Canada)';
-        case 'es-GT': return 'Español (Guatemala)';
-        case 'fr-CH': return 'français (Suisse)';
-        case 'hr-BA': return 'hrvatski (Bosna i Hercegovina)';
-        case 'smj-NO': return 'julevusámegiella (Vuodna)';
-        case 'ar-DZ': return 'العربية (الجزائر)';
-        case 'zh-MO': return '中文(澳門特別行政區)';
-        case 'de-LI': return 'Deutsch (Liechtenstein)';
-        case 'en-NZ': return 'English (New Zealand)';
-        case 'es-CR': return 'Español (Costa Rica)';
-        case 'fr-LU': return 'français (Luxembourg)';
-        case 'bs-Latn-BA': return 'bosanski (Bosna i Hercegovina)';
-        case 'smj-SE': return 'julevusámegiella (Svierik)';
-        case 'ar-MA': return 'العربية (المملكة المغربية)';
-        case 'en-IE': return 'English (Ireland)';
-        case 'es-PA': return 'Español (Panamá)';
-        case 'fr-MC': return 'français (Principauté de Monaco)';
-        case 'sr-Latn-BA': return 'srpski (Bosna i Hercegovina)';
-        case 'sma-NO': return 'åarjelsaemiengiele (Nöörje)';
-        case 'ar-TN': return 'العربية (تونس)';
-        case 'en-ZA': return 'English (South Africa)';
-        case 'es-DO': return 'Español (República Dominicana)';
-        case 'sr-Cyrl-BA': return 'српски (Босна и Херцеговина)';
-        case 'sma-SE': return 'åarjelsaemiengiele (Sveerje)';
-        case 'ar-OM': return 'العربية (عمان)';
-        case 'en-JM': return 'English (Jamaica)';
-        case 'es-VE': return 'Español (Republica Bolivariana de Venezuela)';
-        case 'bs-Cyrl-BA': return 'босански (Босна и Херцеговина)';
-        case 'sms-FI': return 'sääm´ǩiõll (Lää´ddjânnam)';
-        case 'ar-YE': return 'العربية (اليمن)';
-        case 'en-029': return 'English (Caribbean)';
-        case 'es-CO': return 'Español (Colombia)';
-        case 'sr-Latn-RS': return 'srpski (Srbija)';
-        case 'smn-FI': return 'sämikielâ (Suomâ)';
-        case 'ar-SY': return 'العربية (سوريا)';
-        case 'en-BZ': return 'English (Belize)';
-        case 'es-PE': return 'Español (Perú)';
-        case 'sr-Cyrl-RS': return 'српски (Србија)';
-        case 'ar-JO': return 'العربية (الأردن)';
-        case 'en-TT': return 'English (Trinidad y Tobago)';
-        case 'es-AR': return 'Español (Argentina)';
-        case 'sr-Latn-ME': return 'srpski (Crna Gora)';
-        case 'ar-LB': return 'العربية (لبنان)';
-        case 'en-ZW': return 'English (Zimbabwe)';
-        case 'es-EC': return 'Español (Ecuador)';
-        case 'sr-Cyrl-ME': return 'српски (Црна Гора)';
-        case 'ar-KW': return 'العربية (الكويت)';
-        case 'en-PH': return 'English (Philippines)';
-        case 'es-CL': return 'Español (Chile)';
-        case 'ar-AE': return 'العربية (الإمارات العربية المتحدة)';
-        case 'es-UY': return 'Español (Uruguay)';
-        case 'ar-BH': return 'العربية (البحرين)';
-        case 'es-PY': return 'Español (Paraguay)';
-        case 'ar-QA': return 'العربية (قطر)';
-        case 'en-IN': return 'English (India)';
-        case 'es-BO': return 'Español (Bolivia)';
-        case 'en-MY': return 'English (Malaysia)';
-        case 'es-SV': return 'Español (El Salvador)';
-        case 'en-SG': return 'English (Singapore)';
-        case 'es-HN': return 'Español (Honduras)';
-        case 'es-NI': return 'Español (Nicaragua)';
-        case 'es-PR': return 'Español (Puerto Rico)';
-        case 'es-US': return 'Español (Estados Unidos)';
-
-
-        default :return "";
-    }
+    $locales = get_locales();
+    if (!in_array($locale, $locales))
+        return "";
+    return $locales[$locale];
 }
 
 ?>

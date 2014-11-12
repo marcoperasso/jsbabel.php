@@ -9,6 +9,24 @@ class MySites extends MY_Controller {
         parent::__construct();
     }
 
+    public function site_list() {
+        $sites = NULL;
+        $user = $this->get_user();
+        if ($user) {
+            $sites = $user->get_sites();
+        }
+        $locales = array();
+        foreach (get_locales() as $key => $value) {
+            $obj = new stdClass;
+            $obj->code = $key;
+            $obj->displayName = $value;
+            array_push($locales, $obj);
+        }
+        $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode(array("sites" => $sites, "locales" => $locales)));
+    }
+
     public function index() {
         $user = $this->get_user_or_redirect();
         if (!$user)
