@@ -40,7 +40,7 @@
 
 .selectlist-item {
   /* Icon from Font Awesome (http://fortawesome.github.com/Font-Awesome/) */
-  background: #e8e8e8 url("remove.png") no-repeat 96% center;
+  background: #e8e8e8 url("img/remove.png") no-repeat 96% center;
   border-top: solid 1px #ccc;
   border-right: solid 1px #999;
   border-bottom: solid 1px #999;

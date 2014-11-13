@@ -3,6 +3,7 @@
     <head>
         <link rel="import" href="templates/header.html">
         <title>My sites</title>
+        <link rel="stylesheet" type="text/css" href="css/selectlist.css" />
         <script type="text/javascript" src="js/jquery.selectlist.min.js"></script>
     </head>
 
@@ -127,7 +128,7 @@
                         $(item).slideUp(500, callback);
                     },
                     onRemove: elementChanged,
-                    template: '<li title="Remove"><img src="/img/flag/%value%.png"/>%text%</li>'
+                    template: '<li title="Remove"><img src="img/cross-circle.png"/>%text%</li>'
                 });
                 $('#addbtn').click(function (e) {
                     e.preventDefault();
@@ -163,7 +164,7 @@
                         });
                     }
                 });
-               
+
                 $(".siteproperty").change(somethingChanged);
                 var sample = "http://www.your site.com";
                 var sitename = $("#sitename");
