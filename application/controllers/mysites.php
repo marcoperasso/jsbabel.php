@@ -11,16 +11,20 @@ class MySites extends MY_Controller {
 
     public function site_list() {
         $sites = NULL;
+        $locales = NULL;
         $user = $this->get_user();
+
         if ($user) {
             $sites = $user->get_sites();
-        }
-        $locales = array();
-        foreach (get_locales() as $key => $value) {
-            $obj = new stdClass;
-            $obj->code = $key;
-            $obj->displayName = $value;
-            array_push($locales, $obj);
+            foreach ($sites as $s)
+                $s->get_target_locales(); //force locales loading
+            $locales = array();
+            foreach (get_locales() as $key => $value) {
+                $obj = new stdClass;
+                $obj->code = $key;
+                $obj->displayName = $value;
+                array_push($locales, $obj);
+            }
         }
         $this->output
                 ->set_content_type('text/json')

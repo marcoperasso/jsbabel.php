@@ -1,6 +1,6 @@
 <?php
 
-require_once("site_users_model.php");
+require_once("user_sites_model.php");
 
 class User_model extends MY_Model {
 
@@ -67,8 +67,8 @@ class User_model extends MY_Model {
 
     public function get_sites() {
         if (!$this->sites) {
-            $this->load->model('Site_users_model');
-            $this->sites = $this->Site_users_model->get_user_sites($this->id);
+            $this->load->model('User_sites_model');
+            $this->sites = $this->User_sites_model->get_user_sites($this->id);
         }
         return $this->sites;
     }

@@ -9,7 +9,7 @@ abstract class UserRole {
 
 }
 
-class Site_users_model extends MY_Model {
+class User_sites_model extends MY_Model {
 
     public $siteId;
     public $userId;
@@ -46,14 +46,14 @@ class Site_users_model extends MY_Model {
         $this->db->select('*');
         $this->db->from($this->t);
         $this->db->join($this->Site_model->t, $this->c['siteId'] ."=". $this->Site_model->c["id"]);
-        $this->db->where('USERID', $userId);
+        $this->db->where($this->c['userId'], $userId);
         $query = $this->db->get();
         $rows = array();
         foreach ($query->result() as $row) {
-            $site_user = new stdClass;
-            $this->row_to_object($row, $site_user);
-            $this->Site_model->row_to_object($row, $site_user);
-            array_push($rows, $site_user);
+            $user_site = new Site_model;
+            $this->row_to_object($row, $user_site);
+            $this->Site_model->row_to_object($row, $user_site);
+            array_push($rows, $user_site);
         }
         return $rows;
     }

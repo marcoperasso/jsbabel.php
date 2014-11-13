@@ -9,6 +9,7 @@ class Site_model extends MY_Model {
     public $offset;
     public $top;
     public $translation_version;
+    public $target_locales = NULL;
 
     public function __construct() {
         parent::__construct();
@@ -46,14 +47,22 @@ class Site_model extends MY_Model {
         $this->row_to_object($row, $this);
         return $this;
     }
-    
-      public function get_sites($userId) {
+
+    public function get_sites($userId) {
         $query = $this->db->get_where($this->t, array($this->c['host'] => $host));
         $row = $query->row();
         if (!$row)
             return FALSE;
         $this->row_to_object($row, $this);
         return $this;
+    }
+
+    public function get_target_locales() {
+        if (!$this->target_locales) {
+            $this->load->model('Locales_model');
+            $this->target_locales = $this->Locales_model->get_target_locales($this->id);
+        }
+        return $this->target_locales;
     }
 
 }

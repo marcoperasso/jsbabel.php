@@ -123,7 +123,7 @@ class Translator extends MY_Controller {
         if ($user) {
             $role = $user->get_role($site->id);
             switch ($role) {
-                case UserRole::Admin:
+                //case UserRole::Admin:
                 case UserRole::Owner:
                 case UserRole::Translator:
                     $response .= "__babel.addTranslatorScripts(" . $role . ", false);";
@@ -144,8 +144,7 @@ class Translator extends MY_Controller {
             if ($baseLocale != $targetLocale) {//lo aggiungo se non l'ho già messo in testa
                 array_push($clientData->ld, $this->getLocaleFlagData($baseLocale));
             }
-            $this->load->model('Locales_model');
-            foreach ($this->Locales_model->get_target_locales($site->id) as $loc) {
+            foreach ($site->get_target_locales() as $loc) {
                 if ($loc != $targetLocale && $loc != $baseLocale) {//add only if not yet added
                     array_push($clientData->ld, $this->getLocaleFlagData($loc));
                 }
