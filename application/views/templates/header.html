@@ -10,45 +10,7 @@
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 <script src="../js/babel.js"></script>
+<script src="../js/common.js"></script>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 <meta name="keywords" content="Software, sviluppo, development, c++, c#, java, javascript">
 <meta name="description" content="Software development">
-
-<script >
-    $(function () {
-        $('body').css({"min-height": $(window).innerHeight()});
-        $(window).resize(function () {
-            $('body').css({"min-height": $(window).innerHeight()});
-        });
-        var jContainer = $('div.content');
-        $.get("templates/visualheader.html", null, function (data) {
-            jContainer.prepend($(data));
-        })
-
-        $.get("templates/footer.html", null, function (data) {
-            jContainer.append($(data));
-        })
-        jContainer.attr("ng-app", "").attr("ng-controller", "jsbController");
-
-        $.getScript("//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js");
-    });
-
-    function jsbController($scope, $http) {
-        $http.get("home/data")
-                .success(function (response) {
-                    $scope.data = response;
-//give a chance to the page to specify its own data request
-                    if (window.controllerRequest)
-                    {
-                        $http.get(window.controllerRequest).success(function (response)
-                        {
-                            $scope.pageData = response;
-                            if (window.controllerReady)
-                                window.controllerReady($scope);//notify the page that the controller has been loaded
-                        })
-                    }
-                    else if (window.controllerReady)
-                        window.controllerReady($scope);//notify the page that the controller has been loaded
-                });
-    }
-</script>

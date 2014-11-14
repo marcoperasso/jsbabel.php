@@ -25,7 +25,7 @@
                     <fieldset class="outerfields">
                         <legend>Add a new site</legend>
                         <label for="addsite">Site url: </label>
-                        <input id="sitename" style="width: 300px;" name="sitename" type="text">
+                        <input id="sitename" style="width: 300px;" name="sitename" type="text" placeholder="http://www.your site.com">
                         <input type="submit" id="addbtn" value="Add">
                     </fieldset>
                 </form>
@@ -118,7 +118,7 @@
                         alert(res.message);
                 });
             }
-            $(document).ready(function () {
+            window.controllerReady = function () {
 
                 $('select.targetLanguage').selectList({
                     addAnimate: function (item, callback) {
@@ -128,7 +128,7 @@
                         $(item).slideUp(500, callback);
                     },
                     onRemove: elementChanged,
-                    template: '<li title="Remove"><img src="img/cross-circle.png"/>%text%</li>'
+                    template: '<li title="Remove"><img src="mysites/get_flag/%value%">%text%<img style="float:right" src="img/cross-circle.png"></li>'
                 });
                 $('#addbtn').click(function (e) {
                     e.preventDefault();
@@ -166,19 +166,8 @@
                 });
 
                 $(".siteproperty").change(somethingChanged);
-                var sample = "http://www.your site.com";
-                var sitename = $("#sitename");
-                sitename.focus(function () {
-                    if (sitename.val() == sample)
-                        sitename.val("http://");
-                });
-                sitename.focusout(function () {
-                    if (sitename.val() == "http://")
-                        sitename.val(sample);
-                });
-                sitename.val(sample);
-            }
-            );
+
+            };
         </script>
     </body>
 

@@ -9,6 +9,13 @@ class MySites extends MY_Controller {
         parent::__construct();
     }
 
+    public function get_flag($loc) {
+        $path = realpath(APPPATH) . "/asset/img/flags/" . get_country($loc) . ".png";
+        $this->output
+                ->set_content_type('image/png')
+                ->set_output(file_get_contents($path));
+    }
+
     public function site_list() {
         $sites = NULL;
         $locales = NULL;
