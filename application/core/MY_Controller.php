@@ -19,28 +19,27 @@ class MY_Controller extends CI_Controller {
         //$this->user = (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
     }
 
-   protected function set_user($user) {
-    if (isset($_SESSION))
-        $_SESSION["user"] = serialize($user);
-}
+    protected function set_user($user) {
+        if (isset($_SESSION))
+            $_SESSION["user"] = serialize($user);
+    }
 
-protected function get_user() {
-    $CI = & get_instance();
-    $CI->load->model('User_model');
-    return (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
-}
+    protected function get_user() {
+        $CI = & get_instance();
+        $CI->load->model('User_model');
+        return (isset($_SESSION) && isset($_SESSION['user'])) ? unserialize($_SESSION["user"]) : NULL;
+    }
 
+    protected function get_state() {
+        $CI = & get_instance();
+        return (isset($_SESSION) && isset($_SESSION['state'])) ? unserialize($_SESSION["state"]) : new stdClass;
+    }
 
+    protected function set_state($state) {
+        if (isset($_SESSION))
+            $_SESSION["state"] = serialize($state);
+    }
 
-protected function get_state() {
-    $CI = & get_instance();
-    return (isset($_SESSION) && isset($_SESSION['state'])) ? unserialize($_SESSION["state"]) : new stdClass;
-}
-
-protected function set_state($state) {
-    if (isset($_SESSION))
-        $_SESSION["state"] = serialize($state);
-}
     protected function get_user_or_redirect() {
         $user = $this->get_user();
 
@@ -52,6 +51,14 @@ protected function set_state($state) {
         $this->set_state($state);
         $this->load->view('login_needed.html');
         return NULL;
+    }
+
+    protected function send_json_response($code = NULL) {
+        $response = new stdClass;
+        $response->code = $code ? $code : 0;
+        $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode($response));
     }
 
     protected function send_mail($to, $subject, $message) {

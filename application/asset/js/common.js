@@ -41,3 +41,30 @@ function jsbController($scope, $http) {
                     window.controllerReady($scope);//notify the page that the controller has been loaded
             });
 }
+function beginWaitingMessage()
+{
+    jQuery("#waitDialog").modal();
+}
+function endWaitingMessage()
+{
+    jQuery("#waitDialog").modal('hide');
+}
+
+function doMessage(msg, onConfirm)
+{
+    var jDlg = jQuery("#messageDialog");
+    var jCancel = $("#btnCancel", jDlg);
+    var jOK = $("#btnOk", jDlg);
+    jOK.off();//remove previous events
+    if (onConfirm)//user may refuse: cancel button needed, attach event to ok button
+    {
+        jCancel.show();
+        jOK.click(function(){setTimeout(onConfirm, 1);});//use settimeout to allow dialog to close
+    }
+    else//no decision required: cancel button is not required
+    {
+        jCancel.hide();
+    }
+    jQuery('.modal-body', jDlg).html(msg.replace("\n", "<br>"));
+    jDlg.modal();
+}

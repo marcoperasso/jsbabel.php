@@ -5,6 +5,28 @@
         <title>My sites</title>
         <link rel="stylesheet" type="text/css" href="css/selectlist.css" />
         <script type="text/javascript" src="js/jquery.selectlist.min.js"></script>
+        <style type="text/css">
+            legend
+            {
+                width: auto;
+                margin-bottom: auto;
+            }
+            fieldset
+            {
+                border: solid blue 1px;
+                padding: 10px;
+                margin: 10px;
+
+            }
+            select
+            {
+                width: 100%;
+            }
+            div.anchorValue
+            {
+                display: none;
+            }
+        </style>
     </head>
 
     <body>
@@ -15,26 +37,15 @@
                 <div class="col-md-6 center-text">
 
                     <h1>My sites</h1>
-                    <p ng-show="!pageData.sites">You currently have no sites to translate.</p>
-                    <p ng-show="pageData.sites">You are translating these sites:</p>
-
+                    <h2 ng-show="!pageData.sites">You currently have no sites to translate.</h2>
+                    <h2 ng-show="pageData.sites">You are translating these sites:</h2>
                 </div>
                 <div class="col-md-3"></div>
-
-                <form id="addsiteform">
-                    <fieldset class="outerfields">
-                        <legend>Add a new site</legend>
-                        <label for="addsite">Site url: </label>
-                        <input id="sitename" style="width: 300px;" name="sitename" type="text" placeholder="http://www.your site.com">
-                        <input type="submit" id="addbtn" value="Add">
-                    </fieldset>
-                </form>
             </div>
-            <div class="body row">
-
-                <div class="col-md-3"></div>
-                <div class="col-md-6">
-                    <form method="post" action="servlet/settings" ng-repeat="site in pageData.sites">
+            <div class="body row site" ng-repeat="site in pageData.sites">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <form method="post" action="servlet/settings" >
                         <input type="hidden" name="siteid" class="siteid" value="{{site.siteId}}">
                         <input type="hidden" name="sitedomain" class="sitedomain" value="{{site.host}}>">
                         <fieldset class="outerfields">
@@ -42,64 +53,63 @@
                                 <img src="img/delete.png" class="deletesite clickable" alt="Remove this site" title="Remove this site"/>
                                 <span class="jsb_notranslate">{{site.host}}</span>
                             </legend>
-                            <table>
-                                <tr>
-                                    <td><fieldset class="innerfields">
-                                            <legend>Original site language</legend>
+                            <div class="container" >
+                                <div class="row">
+                                    <fieldset class="innerfields col-md-4">
+                                        <legend>Original site language</legend>
 
-                                            <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate">
-                                                <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "loc.code == site.base_locale" value="{{loc.code}}">
-                                                    {{loc.displayName}}
-                                                </option>
-                                                <option ng-repeat="loc in pageData.locales" ng-if = "loc.code != site.base_locale" value="{{loc.code}}">
-                                                    {{loc.displayName}}
-                                                </option>
-                                            </select>
-                                        </fieldset>
-                                        <fieldset class="innerfields">
-                                            <legend>Anchor translation toolbar to: </legend>
-                                            <input type="radio" name="anchor" value="L" class="siteproperty" ng-if="site.anchor == 'L'" checked>
-                                            <input type="radio" name="anchor" value="L" class="siteproperty" ng-if="site.anchor != 'L'" >
-                                            left margin of the page<BR />
-                                            <input type="radio" name="anchor" value="C" class="siteproperty" ng-if="site.anchor == 'C'" checked>
-                                            <input type="radio" name="anchor" value="C" class="siteproperty" ng-if="site.anchor != 'C'" >
-                                            center of the page<BR />
-                                        </fieldset>
-                                    </td>
-                                    <td>
-                                        <fieldset class="innerfields">
-                                            <legend>Translated languages</legend>
-                                            <select multiple id="targetLanguage" name="targetLanguage"
-                                                    class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
+                                        <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate">
+                                            <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "loc.code == site.base_locale" value="{{loc.code}}">
+                                                {{loc.displayName}}
+                                            </option>
+                                            <option ng-repeat="loc in pageData.locales" ng-if = "loc.code != site.base_locale" value="{{loc.code}}">
+                                                {{loc.displayName}}
+                                            </option>
+                                        </select>
+                                    </fieldset>
+                                    <fieldset class="innerfields col-md-4">
+                                        <legend>Translated languages</legend>
+                                        <select multiple id="targetLanguage" name="targetLanguage"
+                                                class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
 
-                                                <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "site.target_locales.indexOf(loc.code) != -1" value="{{loc.code}}">
-                                                    {{loc.displayName}}
-                                                </option>
-                                                <option ng-repeat="loc in pageData.locales" ng-if = "site.target_locales.indexOf(loc.code) == -1" value="{{loc.code}}">
-                                                    {{loc.displayName}}
-                                                </option>
-                                            </select>
-                                        </fieldset>
-                                    </td>
-                                    <td>
-                                        <!--                                <fieldset class="innerfields">
-                                                                            <legend>Manage site translations</legend>
-                                                                            <%
-                                                                            for (TargetLocale tl : site.getTargetLocales()) {
-                                                                            Locale l = Helper.fromLanguageCode(tl.getLocale());
-                                                                            %>
-                                                                            <a title="<%=l.getDisplayName(l)%>" href="sitetranslations.jsp?siteid=<%=site.getId()%>&targetlocale=<%=tl.getLocale()%>" ><%=l.getDisplayName(l)%></a>
-                                                                        </fieldset>-->
-                                    </td>
-                                </tr>
-                            </table>
+                                            <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "site.target_locales.indexOf(loc.code) != -1" value="{{loc.code}}">
+                                                {{loc.displayName}}
+                                            </option>
+                                            <option ng-repeat="loc in pageData.locales" ng-if = "site.target_locales.indexOf(loc.code) == -1" value="{{loc.code}}">
+                                                {{loc.displayName}}
+                                            </option>
+                                        </select>
+                                    </fieldset>
+                                    <fieldset class="innerfields col-md-4">
+                                        <div class="anchorValue">{{site.anchor}}</div>
+                                        <legend>Anchor language flags to: </legend>
+                                        <input type="radio" name="anchor" value="L" class="siteproperty" >
+                                        left margin of the page<BR />
+                                        <input type="radio" name="anchor" value="C" class="siteproperty">
+                                        center of the page<BR />
+                                    </fieldset>
+
+                                </div>
+                            </div>
+
                         </fieldset>
                     </form> 
                 </div>
-                <div class="col-md-3"></div>
+                <div class="col-md-2"></div>
 
             </div>
-
+            <div class="col-md-2"></div>
+            <form class = "col-md-8" id="addsiteform">
+                <fieldset class="outerfields">
+                    <legend>Add a new site</legend>
+                    <div class="center-text" >
+                        <label for="addsite">Site address: </label>
+                        <input id="sitename" style="width: 300px;" name="host" type="text" placeholder="http://www.your site.com">
+                        <input type="submit" id="addbtn" value="Add">
+                    </div>
+                </fieldset>
+            </form>
+            <div class="col-md-2"></div>
         </div>
         <script type="text/javascript">
 
@@ -107,17 +117,6 @@
             //see header.html
             window.controllerRequest = "mysites/site_list";
 
-            this.somethingChanged = function () {
-                elementChanged(this);
-            }
-            this.elementChanged = function (el)
-            {
-                var data = $(el).parents("form").serialize();
-                $.post("/servlet/mysites?cmd=sitechange", data, function (res) {
-                    if (!res.success)
-                        alert(res.message);
-                });
-            }
             window.controllerReady = function () {
 
                 $('select.targetLanguage').selectList({
@@ -128,46 +127,89 @@
                         $(item).slideUp(500, callback);
                     },
                     onRemove: elementChanged,
-                    template: '<li title="Remove"><img src="mysites/get_flag/%value%">%text%<img style="float:right" src="img/cross-circle.png"></li>'
+                    template: '<li title="Remove"><img src="mysites/get_flag/%value%">%text%</li>'
                 });
+
+                $('input[name="anchor"]').each(function () {
+                    var me = $(this);
+                    if (me.val() == me.siblings('.anchorValue').text())
+                        me.attr("checked", true);
+                });
+
                 $('#addbtn').click(function (e) {
                     e.preventDefault();
                     beginWaitingMessage();
                     var formData = $(this).parents("form").serialize();
-                    $.getJSON("/servlet/mysites", {"cmd": "checksite", "shouldnotexist": true, "sitename": $("#sitename").val()}, function (data) {
+
+                    $.post("mysites/add", formData, function (res) {
                         endWaitingMessage();
-                        if (data.success == true)
-                        {
-                            $.post("/servlet/mysites?cmd=add", formData, function (res) {
-                                if (res.success)
-                                    location.reload();
-                                else
-                                    alert(res.message);
-                            });
-                        }
+                        if (res.code === 0)
+                            location.reload();
                         else
-                            alert(data.message);
+                            showError(res.code);
                     });
                 });
-                $('.deletesite').click(function () {
-                    if (confirm(_jsb("Are you sure to remove this site?")))
-                    {
-                        beginWaitingMessage();
-                        var f = $(this).parents("form");
-                        var siteIdField = $(".siteid", f);
-                        $.getJSON("/servlet/mysites", {"cmd": "deletesite", "siteid": siteIdField.val()}, function (data) {
-                            endWaitingMessage();
-                            if (data.success == true)
-                                f.remove();
-                            else
-                                alert(data.message);
-                        });
-                    }
-                });
-
+                $('.deletesite').click(deleteSite);
                 $(".siteproperty").change(somethingChanged);
 
             };
+            this.somethingChanged = function () {
+                elementChanged(this);
+            }
+            this.elementChanged = function (el)
+            {
+                var data = $(el).parents("form").serialize();
+                $.post("mysites/update", data, function (res) {
+                    if (res.code !== 0)
+                        showError(res.code);
+                });
+            }
+            function deleteSite()
+            {
+                //retreive the div containing the site information
+                var siteDiv = $(this).closest("div.site");
+                doMessage(_jsb("Are you really sure to remove this site?\nALL RELATED DATA WILL BE DEFINITIVELY ERASED, INCLUDING TRANSLATIONS. DO YOU CONFIRM DELETION?"), yesDeleteSite);
+                function yesDeleteSite()
+                {
+                    beginWaitingMessage();
+                    var siteIdField = $(".siteid", siteDiv);
+                    $.getJSON("mysites/delete/" + siteIdField.val(), function (data) {
+                        endWaitingMessage();
+                        if (data.code === 0)
+                            siteDiv.remove();
+                        else
+                            showError(res.code);
+                    });
+                }
+            }
+            function showError(code)
+            {
+                var INVALID_USER = 1;
+                var INVALID_URL = 2;
+                var CANNOT_DELETE_SITE = 3;
+                var CANNOT_CREATE_SITE = 4;
+                var SITE_ALREADY_EXISTING = 5;
+                var msg = "";
+                switch (code)
+                {
+                    case INVALID_USER:
+                        msg = _jsb("You must be logged in to perform this operation.");
+                        break;
+                    case INVALID_URL:
+                        msg = _jsb("Invalid site address.");
+                        break;
+                    case CANNOT_DELETE_SITE:
+                        msg = _jsb("Cannot delete this site.");
+                        break;
+                    case CANNOT_CREATE_SITE:
+                        msg = _jsb("Cannot create this site.");
+                        break;
+                    case SITE_ALREADY_EXISTING:
+                        msg = _jsb("Site already existing.");
+                        break;
+                }
+                doMessage(msg);
+            }
         </script>
     </body>
 

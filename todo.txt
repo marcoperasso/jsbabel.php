@@ -1,2 +1,2 @@
 calcolare dinamicamente l'host di provenienza dello script
-levare linea orizzontale bianca sotto header
+inserire codice di verifica proprietario del sito
