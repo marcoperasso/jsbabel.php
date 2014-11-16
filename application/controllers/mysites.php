@@ -81,7 +81,7 @@ class MySites extends MY_Controller {
             $this->send_json_response(MySites::INVALID_USER);
             return;
         }
-        if (!$this->verify_permission($user, $site))
+        if (!$this->verify_permission($user, $siteId))
             return;
         if ($this->Site_model->delete_site($siteId))
             $this->send_json_response();
