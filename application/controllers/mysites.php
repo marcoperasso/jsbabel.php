@@ -4,12 +4,15 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 class MySites extends MY_Controller {
-    const INVALID_USER =1;
+
+    const INVALID_USER = 1;
     const INVALID_URL = 2;
     const CANNOT_DELETE_SITE = 3;
     const CANNOT_CREATE_SITE = 4;
-    const SITE_ALREADY_EXISTING = 5;
-    
+    const CANNOT_UPDATE_SITE = 5;
+    const SITE_ALREADY_EXISTING = 6;
+    const USER_HAS_NO_RIGHTS = 7;
+
     public function __construct() {
         parent::__construct();
         $this->load->model('Site_model');
@@ -57,16 +60,53 @@ class MySites extends MY_Controller {
         $this->load->view('mysites.html');
     }
 
+    private function verify_permission($user, $siteId) {
+        foreach ($user->get_sites() as $site) {
+            if ($site->id == $siteId) {
+
+                if ($site->role != UserRole::Admin && $site->role != UserRole::Owner) {
+                    $this->send_json_response(MySites::USER_HAS_NO_RIGHTS);
+                    return FALSE;
+                }
+                return TRUE;
+            }
+        }
+        $this->send_json_response(MySites::USER_HAS_NO_RIGHTS);
+        return FALSE;
+    }
+
     public function delete($siteId) {
         $user = $this->get_user();
         if (!$user) {
             $this->send_json_response(MySites::INVALID_USER);
             return;
         }
+        if (!$this->verify_permission($user, $site))
+            return;
         if ($this->Site_model->delete_site($siteId))
             $this->send_json_response();
         else
             $this->send_json_response(MySites::CANNOT_DELETE_SITE);
+    }
+
+    public function update() {
+        $user = $this->get_user();
+        if (!$user) {
+            $this->send_json_response(MySites::INVALID_USER);
+            return;
+        }
+
+        $siteId = $this->input->post('siteid');
+        if (!$this->verify_permission($user, $siteId))
+            return;
+        $site = $this->Site_model->get_site_by_id($siteId);
+        $site->base_locale = $this->input->post('baseLanguage');
+        $site->target_locales = $this->input->post('targetLanguage');
+        $site->anchor = $this->input->post('anchor');
+        if (!$site->update())
+            $this->send_json_response(MySites::CANNOT_UPDATE_SITE);
+        else
+            $this->send_json_response();
     }
 
     public function add() {
@@ -89,7 +129,7 @@ class MySites extends MY_Controller {
             $this->send_json_response(MySites::INVALID_URL);
             return;
         }
-        
+
         $host = parse_url($url, PHP_URL_HOST);
         $site = $this->Site_model->get_site($host);
         //verify site is not yet registered
@@ -97,7 +137,8 @@ class MySites extends MY_Controller {
             $this->send_json_response(MySites::SITE_ALREADY_EXISTING);
             return;
         }
-        $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $lang = substr($lang, 0, strpos($lang, ','));
         //finally create site
         $site = new Site_model();
         $site->host = $host;
@@ -107,14 +148,11 @@ class MySites extends MY_Controller {
         $site->top = 0;
         $site->translation_version = 0;
 
-        if ($site->insert($user->id))
-        {
+        if ($site->insert($user->id)) {
             $user->sites = NULL;
             $this->set_user($user);
             $this->send_json_response();
-        }
-        else
-        {
+        } else {
             $this->send_json_response(MySites::CANNOT_CREATE_SITE);
         }
     }

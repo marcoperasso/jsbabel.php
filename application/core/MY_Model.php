@@ -21,4 +21,10 @@ class MY_Model extends CI_Model {
         }
     }
 
+    public function insert() {
+        $row = new stdClass;
+        $this->object_to_row($this, $row);
+        $this->db->insert($this->t, $row);
+    }
+
 }

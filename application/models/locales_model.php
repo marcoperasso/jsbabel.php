@@ -14,6 +14,11 @@ class Locales_model extends MY_Model {
         );
     }
 
+    public function delete($siteId) {
+        $this->db->where($this->c['siteId'], $siteId);
+        $this->db->delete($this->t);
+    }
+
     public function get_target_locales($siteId) {
         $this->db->select($this->c['locale']);
         $query = $this->db->get_where($this->t, array($this->c['siteId'] => $siteId));

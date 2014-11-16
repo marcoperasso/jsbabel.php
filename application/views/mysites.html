@@ -37,17 +37,15 @@
                 <div class="col-md-6 center-text">
 
                     <h1>My sites</h1>
-                    <h2 ng-show="!pageData.sites">You currently have no sites to translate.</h2>
-                    <h2 ng-show="pageData.sites">You are translating these sites:</h2>
+                    <h2 ng-show="pageData.sites.length == 0">You currently have no sites to translate.</h2>
                 </div>
                 <div class="col-md-3"></div>
             </div>
             <div class="body row site" ng-repeat="site in pageData.sites">
                 <div class="col-md-2"></div>
                 <div class="col-md-8">
-                    <form method="post" action="servlet/settings" >
+                    <form method="post" action="mysites/update" target="res">
                         <input type="hidden" name="siteid" class="siteid" value="{{site.siteId}}">
-                        <input type="hidden" name="sitedomain" class="sitedomain" value="{{site.host}}>">
                         <fieldset class="outerfields">
                             <legend>
                                 <img src="img/delete.png" class="deletesite clickable" alt="Remove this site" title="Remove this site"/>
@@ -69,7 +67,7 @@
                                     </fieldset>
                                     <fieldset class="innerfields col-md-4">
                                         <legend>Translated languages</legend>
-                                        <select multiple id="targetLanguage" name="targetLanguage"
+                                        <select multiple id="targetLanguage" name="targetLanguage[]"
                                                 class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
 
                                             <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "site.target_locales.indexOf(loc.code) != -1" value="{{loc.code}}">
@@ -188,7 +186,10 @@
                 var INVALID_URL = 2;
                 var CANNOT_DELETE_SITE = 3;
                 var CANNOT_CREATE_SITE = 4;
-                var SITE_ALREADY_EXISTING = 5;
+                var CANNOT_UPDATE_SITE = 5;
+                var SITE_ALREADY_EXISTING = 6;
+                var USER_HAS_NO_RIGHTS = 7;
+
                 var msg = "";
                 switch (code)
                 {
@@ -204,8 +205,14 @@
                     case CANNOT_CREATE_SITE:
                         msg = _jsb("Cannot create this site.");
                         break;
+                    case CANNOT_UPDATE_SITE:
+                        msg = _jsb("Cannot update this site.");
+                        break;
                     case SITE_ALREADY_EXISTING:
                         msg = _jsb("Site already existing.");
+                        break;
+                    case USER_HAS_NO_RIGHTS:
+                        msg = _jsb("You do not have the permissions to perform this operation.");
                         break;
                 }
                 doMessage(msg);
