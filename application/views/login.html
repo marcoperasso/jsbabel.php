@@ -25,7 +25,7 @@
                         <p class="text-center"><small><br><a href="#" id="_jsbloginforget">Forgot password?</a></small></p>
                     </fieldset>
                     <div class="center-text" id = "_jsbWait" style="display: none" >
-                        <img src="img/loading.gif" alt="Loading" />
+                        <img src="{{BASE_URL}}/img/loading.gif" alt="Loading" />
                     </div>
                 </form>
             </div>
@@ -52,7 +52,7 @@
 </div>
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="<?php echo BASE_URL ?>/js/md5-min.js"></script>
+<script type="text/javascript" src="{{BASE_URL}}/js/md5-min.js"></script>
 <script type="text/javascript">
 
     function _jsbDoLogin()
@@ -68,10 +68,11 @@
     }
     function _jsbDoLoginInternal()
     {
+        debugger;
         jQuery("#_jsbWait").show();
         setTimeout(function () {
             var pwd = hex_md5(jQuery('#_jsbloginpassword').val());
-            var url = "<?php echo BASE_URL ?>/translator/do_login?" + jQuery.param({
+            var url = "{{BASE_URL}}/translator/do_login?" + jQuery.param({
                 "1": jQuery("#_jsbloginid").val(),
                 "2": pwd
             }, true);
