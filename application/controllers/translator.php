@@ -122,14 +122,8 @@ class Translator extends MY_Controller {
         $translations = "";
         if ($user) {
             $role = $user->get_role($site->id);
-            switch ($role) {
-                //case UserRole::Admin:
-                case UserRole::Owner:
-                case UserRole::Translator:
-                    $response .= "__babel.addTranslatorScripts(" . $role . ", false);";
-                    break;
-                default:
-                    break;
+            if (UserRole::Is($role, UserRole::Translator)) {
+                $response .= "__babel.addTranslatorScripts(" . $role . ", false);";
             }
         }
 
@@ -139,13 +133,14 @@ class Translator extends MY_Controller {
             $clientData->a = $site->anchor;
             $clientData->x = $site->offset;
             $clientData->y = $site->top;
-            //used language is always the first of the list
-            array_push($clientData->ld, $this->getLocaleFlagData($targetLocale));
+
             if ($baseLocale != $targetLocale) {//lo aggiungo se non l'ho già messo in testa
                 array_push($clientData->ld, $this->getLocaleFlagData($baseLocale));
             }
             foreach ($site->get_target_locales() as $loc) {
-                if ($loc != $targetLocale && $loc != $baseLocale) {//add only if not yet added
+                if ($loc == $targetLocale) {
+                    array_unshift($clientData->ld, $this->getLocaleFlagData($loc)); //used language is always the first of the list
+                } else {
                     array_push($clientData->ld, $this->getLocaleFlagData($loc));
                 }
             }

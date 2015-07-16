@@ -2,11 +2,16 @@
 
 abstract class UserRole {
 
+    //can be a used as a bitwise combination
     const None = 0;
     const Admin = 1;
     Const Owner = 2;
-    Const Translator = 3;
+    Const Translator = 4;
 
+    public static function Is($role, $requestedRole)
+    {
+        return ($role & $requestedRole) == $requestedRole;
+    }
 }
 
 class User_sites_model extends MY_Model {

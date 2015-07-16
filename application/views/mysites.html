@@ -102,7 +102,7 @@
                     <legend>Add a new site</legend>
                     <div class="center-text" >
                         <label for="addsite">Site address: </label>
-                        <input id="sitename" style="width: 300px;" name="host" type="text" placeholder="http://www.your site.com">
+                        <input id="sitename" style="width: 300px;" name="host" type="text" placeholder="http://www.your site.com" >
                         <input type="submit" id="addbtn" value="Add">
                     </div>
                 </fieldset>
@@ -116,7 +116,7 @@
             window.controllerRequest = "mysites/site_list";
 
             window.controllerReady = function () {
-
+                $('#sitename').val(getQueryVariable('host'));
                 $('select.targetLanguage').selectList({
                     addAnimate: function (item, callback) {
                         $(item).slideDown(500, callback);
@@ -161,6 +161,19 @@
                     if (res.code !== 0)
                         showError(res.code);
                 });
+            }
+            function getQueryVariable(variable) {
+                if (location.search.length == 0)
+                    return "";
+                var query = location.search.substring(1);
+                var vars = query.split('&');
+                for (var i = 0; i < vars.length; i++) {
+                    var pair = vars[i].split('=');
+                    if (decodeURIComponent(pair[0]) == variable) {
+                        return decodeURIComponent(pair[1]);
+                    }
+                }
+                return "";
             }
             function deleteSite()
             {

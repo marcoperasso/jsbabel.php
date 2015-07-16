@@ -12,7 +12,6 @@ class MySites extends MY_Controller {
     const CANNOT_UPDATE_SITE = 5;
     const SITE_ALREADY_EXISTING = 6;
     const USER_HAS_NO_RIGHTS = 7;
-
     public function __construct() {
         parent::__construct();
         $this->load->model('Site_model');
@@ -34,11 +33,12 @@ class MySites extends MY_Controller {
         $sites = NULL;
         $locales = NULL;
         $user = $this->get_user();
-
         if ($user) {
             $sites = $user->get_sites();
             foreach ($sites as $s)
+            {
                 $s->get_target_locales(); //force locales loading
+            }
             $locales = array();
             foreach (get_locales() as $key => $value) {
                 $obj = new stdClass;
@@ -48,15 +48,16 @@ class MySites extends MY_Controller {
             }
         }
         $this->output
-                ->set_content_type('text/json')
-                ->set_output(json_encode(array("sites" => $sites, "locales" => $locales)));
+        ->set_content_type('text/json')
+        ->set_output(json_encode(array("sites" => $sites, "locales" => $locales)));
     }
 
     public function index() {
         $user = $this->get_user_or_redirect();
         if (!$user)
             return;
-
+        $this->requestedSite = $this->input->get_post("host"); //will fill the add site input, if this site does not exist
+        
         $this->load->view('mysites.html');
     }
 
@@ -64,7 +65,7 @@ class MySites extends MY_Controller {
         foreach ($user->get_sites() as $site) {
             if ($site->id == $siteId) {
 
-                if ($site->role != UserRole::Admin && $site->role != UserRole::Owner) {
+                if (!UserRole::Is($site->role, UserRole::Admin) && !UserRole::Is($site->role, UserRole::Owner)) {
                     $this->send_json_response(MySites::USER_HAS_NO_RIGHTS);
                     return FALSE;
                 }

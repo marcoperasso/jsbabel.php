@@ -56,13 +56,17 @@ class User_model extends MY_Model {
     }
 
     public function get_role($siteId) {
-        if ($this->id == 0)
-            return UserRole::Admin;
-        foreach ($this->get_sites() as $site) {
-            if ($siteId == $site->siteId)
-                return $site->role;
+        $role = UserRole::None;
+        if ($this->id == 0) {
+            $role = $role | UserRole::Admin;
         }
-        return UserRole::None;
+        foreach ($this->get_sites() as $site) {
+            if ($siteId == $site->siteId) {
+                $role = $role | $site->role;
+                break;
+            }
+        }
+        return $role;
     }
 
     public function get_sites() {

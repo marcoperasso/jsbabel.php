@@ -53,7 +53,7 @@ class Site_model extends MY_Model {
         $this->load->model("User_sites_model");
         $this->User_sites_model->siteId = $this->id;
         $this->User_sites_model->userId = $ownerUserId;
-        $this->User_sites_model->role = UserRole::Owner;
+        $this->User_sites_model->role = UserRole::Owner | UserRole::Translator;
         $this->User_sites_model->insert();
 
         return $this->db->trans_complete();

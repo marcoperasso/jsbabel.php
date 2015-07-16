@@ -52,8 +52,8 @@ function Babel() {
     var persistencyManager = typeof openDatabase === "undefined" ? null : new PersistenceManager();
     var trnDataVersion = 0;
     var trnStringsVersion = 0;
-    var jqueryscript = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js";
-    var jqueryuiscript = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js";
+    var jqueryscript = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js";
+    var jqueryuiscript = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js";
     var demoMode = false;
     var pageDomain = null;
     var pageUrl = null;
