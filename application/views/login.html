@@ -50,103 +50,105 @@
         </div>
     </div>
 </div>
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
-<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{BASE_URL}}/js/md5-min.js"></script>
 <script type="text/javascript">
 
-    function _jsbDoLogin()
-    {
-        if (_jsbTestFields(jQuery("#_jsbloginform")))
-            _jsbDoLoginInternal();
-    }
-    function _jsbMessage(msg)
-    {
-        var jDlg = jQuery("#_jsbMessageDialog");
-        jQuery('.modal-body', jDlg).text(msg);
-        jDlg.modal();
-    }
-    function _jsbDoLoginInternal()
-    {
-        debugger;
-        jQuery("#_jsbWait").show();
-        setTimeout(function () {
-            var pwd = hex_md5(jQuery('#_jsbloginpassword').val());
-            var url = "{{BASE_URL}}/translator/do_login?" + jQuery.param({
-                "1": jQuery("#_jsbloginid").val(),
-                "2": pwd
-            }, true);
-            jQuery.getScript(url);
-            jQuery("#_jsbWait").hide();
-        },
-                500);
-    }
+function _jsbDoLogin()
+{
+    if (_jsbTestFields(jQuery("#_jsbloginform")))
+        _jsbDoLoginInternal();
+}
+function _jsbMessage(msg)
+{
+    var jDlg = jQuery("#_jsbMessageDialog");
+    jQuery('.modal-body', jDlg).text(msg);
+    jDlg.modal();
+}
+function _jsbDoLoginInternal()
+{
+    jQuery("#_jsbWait").show();
+    setTimeout(function () {
+        var pwd = hex_md5(jQuery('#_jsbloginpassword').val());
+        var url = "{{BASE_URL}}/translator/do_login?" + jQuery.param({
+            "1": jQuery("#_jsbloginid").val(),
+            "2": pwd
+        }, true);
+        jQuery.getScript(url);
+        jQuery("#_jsbWait").hide();
+    },
+            500);
+}
 
-    function _jsbResetPassword()
-    {
+function _jsbResetPassword()
+{
 
-    }
-
-
-    function _jsbGetInvalidFields(scope)
-    {
-        var invalids = jQuery(".required", scope).filter(function () {
-            return this.value == "";
-        });
-        //controllo approvazione condizioni
-        var chk = jQuery('input[type="checkbox"].required', scope);
-        if (chk.attr("checked") != "checked") {
-            invalids = invalids.add(chk);
-        }
+}
 
 
-        return invalids;
-    }
-
-    function _jsbResetError()
-    {
-        var jGroup = jQuery(this);
-        jGroup.off('change', _jsbResetError).removeClass('has-error');
-        jQuery('.glyphicon', jGroup).removeClass('glyphicon-warning-sign');
-    }
-    function _jsbTestFields(scope)
-    {
-        var invalids = _jsbGetInvalidFields(scope);
-        if (invalids.length === 0) {
-            return true;
-        }
-        jQuery(invalids[0]).focus();
-        var jGroup = invalids.parents(".form-group");
-        jGroup.addClass('has-error').on("change", _jsbResetError);
-        jQuery('.glyphicon', jGroup).addClass('glyphicon-warning-sign');
-        return false;
-    }
-    function _jsbOpenLoginModal()
-    {
-        if (!jQuery.prototype.modal)
-        {
-            //wait wor bootstrapt script to load
-            setTimeout(_jsbOpenLoginModal, 1)
-        }
-        else
-            jQuery("#_jsbLoginModal")
-                    .modal('show')
-                    .on('shown', function () {
-                        jQuery("#_jsbloginid").focus();
-                    })
-    }
-    jQuery(function ()
-    {
-        jQuery("#_jsbloginforget").click(_jsbResetPassword);
-        jQuery("#_jsbdologin").click(_jsbDoLogin);
-        jQuery('input').keypress(function (e) {
-            if (e.which == 13) {
-                _jsbDoLogin();
-            }
-        });
-        _jsbOpenLoginModal();
-
+function _jsbGetInvalidFields(scope)
+{
+    var invalids = jQuery(".required", scope).filter(function () {
+        return this.value == "";
     });
+    //controllo approvazione condizioni
+    var chk = jQuery('input[type="checkbox"].required', scope);
+    if (chk.attr("checked") != "checked") {
+        invalids = invalids.add(chk);
+    }
+
+
+    return invalids;
+}
+
+function _jsbResetError()
+{
+    var jGroup = jQuery(this);
+    jGroup.off('change', _jsbResetError).removeClass('has-error');
+    jQuery('.glyphicon', jGroup).removeClass('glyphicon-warning-sign');
+}
+function _jsbTestFields(scope)
+{
+    var invalids = _jsbGetInvalidFields(scope);
+    if (invalids.length === 0) {
+        return true;
+    }
+    jQuery(invalids[0]).focus();
+    var jGroup = invalids.parents(".form-group");
+    jGroup.addClass('has-error').on("change", _jsbResetError);
+    jQuery('.glyphicon', jGroup).addClass('glyphicon-warning-sign');
+    return false;
+}
+function _jsbOpenLoginModal()
+{
+    if (!jQuery.prototype.modal)
+    {
+        //wait wor bootstrapt script to load
+        setTimeout(_jsbOpenLoginModal, 1);
+    }
+    else
+    {
+        jQuery("#_jsbLoginModal")
+                .prop('disabled', false)
+                .modal('show')
+                .on('shown', function () {
+                    jQuery("#_jsbloginid").focus();
+                });
+    }
+}
+jQuery(function ()
+{
+    jQuery("#_jsbloginforget").click(_jsbResetPassword);
+    jQuery("#_jsbdologin").click(_jsbDoLogin);
+    jQuery('input').keypress(function (e) {
+        if (e.which == 13) {
+            _jsbDoLogin();
+        }
+    });
+    _jsbOpenLoginModal();
+
+});
 </script>
 
 

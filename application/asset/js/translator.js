@@ -121,11 +121,12 @@ function Translator() {
     var autosave = getCookie(autosaveCookie) == "true";
     var popup = getCookie(popupCookie) == "true";
     var toTranslate = [];
+    var jqueryuicss = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css";
    
     this.onManage = function () {
         alert("Ciao");
     };
-    tr.addCss("http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css");
+    tr.addCss(jqueryuicss);
     tr.showButton('jsb_login', false);
     tr.setThis(this); // per farlo puntare all'oggetto derivato
 
@@ -476,7 +477,7 @@ function Translator() {
 
         tr.addCss("/css/translator.css", getTranslatorDocument());
         tr.addCss("/css/babel.css", getTranslatorDocument());
-        tr.addCss("https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css", getTranslatorDocument());
+        tr.addCss(jqueryuicss, getTranslatorDocument());
 
         handle = jQuery(
                 '<div class="jsb_notranslate inlineTranslator">' +
@@ -953,7 +954,7 @@ function Translator() {
             tr.addCss("/css/common.css", orphansWindow.document);
             tr.addCss("/css/translator.css", orphansWindow.document);
             tr.addCss("/css/babel.css", orphansWindow.document);
-            tr.addCss("https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css", orphansWindow.document);
+            tr.addCss(jqueryuicss, orphansWindow.document);
             jQuery(orphansWindow).unload(function () {
                 jOrphansTable = null;
                 orphansWindow = null;
