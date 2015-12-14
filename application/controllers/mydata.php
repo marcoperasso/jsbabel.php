@@ -3,77 +3,22 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class MySites extends MY_Controller {
+class MyData extends MY_Controller {
 
-    const INVALID_USER = 1;
-    const INVALID_URL = 2;
-    const CANNOT_DELETE_SITE = 3;
-    const CANNOT_CREATE_SITE = 4;
-    const CANNOT_UPDATE_SITE = 5;
-    const SITE_ALREADY_EXISTING = 6;
-    const USER_HAS_NO_RIGHTS = 7;
-    public function __construct() {
+     public function __construct() {
         parent::__construct();
-        $this->load->model('Site_model');
+        $this->load->model('User_model');
     }
 
-    public function get_flag($loc) {
-        $path = realpath(APPPATH) . "/asset/img/flags/" . get_country($loc) . ".png";
-        $seconds_to_cache = 22896000;
-        $ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
-        $this->output
-                ->set_header('Expires: ' . $ts)
-                ->set_header('Pragma: cache')
-                ->set_header('Cache-Control: max-age=' . $seconds_to_cache)
-                ->set_content_type('image/png')
-                ->set_output(file_get_contents($path));
-    }
-
-    public function site_list() {
-        $sites = NULL;
-        $locales = NULL;
-        $user = $this->get_user();
-        if ($user) {
-            $sites = $user->get_sites();
-            foreach ($sites as $s)
-            {
-                $s->get_target_locales(); //force locales loading
-            }
-            $locales = array();
-            foreach (get_locales() as $key => $value) {
-                $obj = new stdClass;
-                $obj->code = $key;
-                $obj->displayName = $value;
-                array_push($locales, $obj);
-            }
-        }
-        $this->output
-        ->set_content_type('text/json')
-        ->set_output(json_encode(array("sites" => $sites, "locales" => $locales)));
-    }
-
+    
+   
     public function index() {
         $user = $this->get_user_or_redirect();
-        if (!$user)
-            return;
-        $this->load->view('mysites.html');
+        
+        $this->load->view('mydata.html');
     }
 
-    private function verify_permission($user, $siteId) {
-        foreach ($user->get_sites() as $site) {
-            if ($site->id == $siteId) {
-
-                if (!UserRole::Is($site->role, UserRole::Admin) && !UserRole::Is($site->role, UserRole::Owner)) {
-                    $this->send_json_response(MySites::USER_HAS_NO_RIGHTS);
-                    return FALSE;
-                }
-                return TRUE;
-            }
-        }
-        $this->send_json_response(MySites::USER_HAS_NO_RIGHTS);
-        return FALSE;
-    }
-
+  
     public function delete($siteId) {
         $user = $this->get_user();
         if (!$user) {

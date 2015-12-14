@@ -22,7 +22,7 @@
                                 <span class="glyphicon form-control-feedback"></span>
                             </div>
                         </div>
-                        <p class="text-center"><small><br><a href="#" id="_jsbloginforget">Forgot password?</a></small></p>
+                        <p class="text-center"><small><br><a href="{{BASE_URL}}/register" id="_jsbregister">Register...</a><a href="#" id="_jsbloginforget">Forgot password?</a><br></small></p>
                     </fieldset>
                     <div class="center-text" id = "_jsbWait" style="display: none" >
                         <img src="{{BASE_URL}}/img/loading.gif" alt="Loading" />
@@ -53,6 +53,7 @@
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{BASE_URL}}/js/md5-min.js"></script>
+<script type="text/javascript" src="{{BASE_URL}}/js/validator.js"></script>
 <script type="text/javascript">
 
 function _jsbDoLogin()
@@ -86,40 +87,6 @@ function _jsbResetPassword()
 
 }
 
-
-function _jsbGetInvalidFields(scope)
-{
-    var invalids = jQuery(".required", scope).filter(function () {
-        return this.value == "";
-    });
-    //controllo approvazione condizioni
-    var chk = jQuery('input[type="checkbox"].required', scope);
-    if (chk.attr("checked") != "checked") {
-        invalids = invalids.add(chk);
-    }
-
-
-    return invalids;
-}
-
-function _jsbResetError()
-{
-    var jGroup = jQuery(this);
-    jGroup.off('change', _jsbResetError).removeClass('has-error');
-    jQuery('.glyphicon', jGroup).removeClass('glyphicon-warning-sign');
-}
-function _jsbTestFields(scope)
-{
-    var invalids = _jsbGetInvalidFields(scope);
-    if (invalids.length === 0) {
-        return true;
-    }
-    jQuery(invalids[0]).focus();
-    var jGroup = invalids.parents(".form-group");
-    jGroup.addClass('has-error').on("change", _jsbResetError);
-    jQuery('.glyphicon', jGroup).addClass('glyphicon-warning-sign');
-    return false;
-}
 function _jsbOpenLoginModal()
 {
     if (!jQuery.prototype.modal)

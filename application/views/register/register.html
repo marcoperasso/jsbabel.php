@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="import" href="templates/header.html">
+        <title>Register</title>
+        <style type="text/css">
+
+        </style>
+    </head>
+
+    <body>
+        <div class="content" >
+            <div class="body row">
+
+                <div class="col-md-3"></div>
+                <div class="col-md-6 center-text">
+
+                    <h1>Register</h1>
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+            <div class="body row site">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <form id="registerform" method="post" action="register/create_user" >
+                        <fieldset class="outerfields">
+                            <legend>
+                                <span >User data</span>
+                            </legend>
+                            <div class="container" >
+                                <div class="row">
+                                    <div id="fieldscontainer">
+                                        <div class="form-group has-feedback" >
+                                            <input type="text" name="userid" class="required form-control"  placeholder="User id"/>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div>
+                                        <div class="form-group has-feedback" >
+                                            <input type="text" name="name" class="required form-control"  placeholder="First name"/>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <input type="text" name="surname" class="required form-control" placeholder="Second name"/>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div>
+                                        <div class="form-group has-feedback">
+                                            <input type="email" name="mail" id="mail" class="required mailinput form-control" placeholder="Email"/>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div> 
+                                        <div class="form_group has-feedback" id="privacy" >
+                                            <input type="checkbox" class="required ">
+                                            <label>
+                                                I read and agree with your <a href="/register/privacy" target="privacy">privacy policy</a>.
+                                            </label>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div>
+                                        <br /><br />
+                                        <input type="button" name="register" id="register" value="Register!" class="btn btn-primary form-control" />
+                                        <br /><br />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </form> 
+                </div>
+                <div class="col-md-2"></div>
+
+            </div>
+
+        </div>
+        <script type="text/javascript" src="js/validator.js">
+        </script>
+        <script type="text/javascript">
+
+            jQuery(function ()
+            {
+                jQuery("#register").click(doRegister);
+                jQuery('input').keypress(function (e) {
+                    if (e.which == 13) {
+                        doRegister();
+                    }
+                });
+            });
+            function doRegister()
+            {
+                var f = jQuery("#registerform");
+                if (_jsbTestFields(f))
+                    f.submit();
+
+            }
+
+
+        </script>
+
+    </body>
+
+</html>
+
