@@ -30,12 +30,6 @@ class User_sites_model extends MY_Model {
         );
     }
 
-    public function insert() {
-        $row = new stdClass;
-        $this->object_to_row($this, $row);
-        return $this->db->insert($this->t, $row);
-    }
-
     public function get_user_sites($userId) {
         $this->load->model("Site_model");
         $this->db->select('*');

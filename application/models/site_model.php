@@ -37,7 +37,7 @@ class Site_model extends MY_Model {
             foreach ($this->target_locales as $loc) {
                 $this->Locales_model->siteId = $this->id;
                 $this->Locales_model->locale = $loc;
-                $this->Locales_model->insert();
+                $this->Locales_model->insertObject();
             }
         }
         return $this->db->trans_complete();
@@ -54,7 +54,7 @@ class Site_model extends MY_Model {
         $this->User_sites_model->siteId = $this->id;
         $this->User_sites_model->userId = $ownerUserId;
         $this->User_sites_model->role = UserRole::Owner | UserRole::Translator;
-        $this->User_sites_model->insert();
+        $this->User_sites_model->insertObject();
 
         return $this->db->trans_complete();
     }
