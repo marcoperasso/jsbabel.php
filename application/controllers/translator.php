@@ -53,13 +53,13 @@ class Translator extends MY_Controller {
         $userid = $this->input->get('1');
         $pwd = $this->input->get('2');
 
-
+        $h = password_hash($pwd, PASSWORD_BCRYPT);
         $this->load->model('User_model');
         $user = $this->User_model->get_user($userid);
 
         if (!$user) {
             $response = "_jsbMessage('Invalid user ID')";
-        } else if (!$user->verify_password($pwd)) {
+        } else if (!password_verify($pwd, $user->password)) {
             $response = "_jsbMessage('Invalid password')";
         } else {
             $this->set_user($user);

@@ -6,7 +6,8 @@ function encode_URI_Component($str) {
 }
 
 function hexEncode($s) {
-    return array_shift(unpack('H*', $s));
+    $temp = unpack('H*', $s);
+    return array_shift($temp);
 }
 
 function htmlSpaceIfEmpty($string) {

@@ -71,7 +71,7 @@ function _jsbDoLoginInternal()
 {
     jQuery("#_jsbWait").show();
     setTimeout(function () {
-        var pwd = hex_md5(jQuery('#_jsbloginpassword').val());
+        var pwd = /*hex_md5*/(jQuery('#_jsbloginpassword').val());
         var url = "{{BASE_URL}}/translator/do_login?" + jQuery.param({
             "1": jQuery("#_jsbloginid").val(),
             "2": pwd

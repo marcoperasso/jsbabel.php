@@ -31,11 +31,7 @@ class User_model extends MY_Model {
         return $this->name . ' ' . $this->surname;
     }
 
-    public function verify_password($test) {
-        $this->load->library('BCrypt');
-        $bcrypt = new BCrypt(15);
-        return $bcrypt->verify($test, $this->password);
-    }
+
 
     public function get_public_clone() {
         $clone = new stdClass();
@@ -57,7 +53,7 @@ class User_model extends MY_Model {
 
     public function get_role($siteId) {
         $role = UserRole::None;
-        if ($this->id == 0) {
+        if ($this->userId == "admin") {
             $role = $role | UserRole::Admin;
         }
         foreach ($this->get_sites() as $site) {

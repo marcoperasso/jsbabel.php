@@ -156,6 +156,8 @@ function Babel() {
                 return 1;
             return 0;
         });
+        
+        targetLocale = null;
         //first one is target locale
         for (var i = 0; i < trnData.ld.length; i++) {
             var flag = trnData.ld[i];
