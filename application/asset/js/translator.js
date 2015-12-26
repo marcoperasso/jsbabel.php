@@ -61,7 +61,7 @@
 })();
 
 function Translator() {
-   var currentMousePos = {x: -1, y: -1};
+    var currentMousePos = {x: -1, y: -1};
     var orphanScript = '/translator/orphans';
     var beginautotranslateScript = '/translator/begin_autotranslate';
     var endautotranslateScript = '/translator/end_autotranslate';
@@ -108,7 +108,7 @@ function Translator() {
     var modified = false;
     var sendDataFrame = null;
     var accelerators = [];
-    var currentJElement = null;
+    var currentTU = null;
     var tr = this;
     var translatorWindow = null;
     var translatorFrame = null;
@@ -120,9 +120,8 @@ function Translator() {
     var skip = getCookie(skipTranslatedCookie) == "true";
     var autosave = getCookie(autosaveCookie) == "true";
     var popup = getCookie(popupCookie) == "true";
-    var toTranslate = [];
     var jqueryuicss = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css";
-   
+
     this.onManage = function () {
         alert("Ciao");
     };
@@ -375,8 +374,7 @@ function Translator() {
         var b = tr.prepareString(input.rowObjs.baseText.value);
         if (input.checked) {
             addIgnore(b, isAutoSave());
-        }
-        else {
+        } else {
             addTranslation(b, input.rowObjs.targetText.value, input.rowObjs.specificInput.checked, isAutoSave());
         }
         adjustControlState(input);
@@ -384,8 +382,7 @@ function Translator() {
             if (el.checked) {
                 jQuery(el.rowObjs.targetText).attr("readonly", "readonly").attr("tabindex", "-1");
                 jQuery(el).parent().addClass("ignoreIsActive");
-            }
-            else {
+            } else {
                 jQuery(el.rowObjs.targetText).removeAttr("readonly").removeAttr("tabindex");
                 jQuery(el).parent().removeClass("ignoreIsActive");
             }
@@ -445,8 +442,7 @@ function Translator() {
                     handle = null;
                 translatorWindow = null;
             });
-        }
-        else
+        } else
         {
             var f = jQuery("<div id='jsbabelTranslatorFrame' style='z-index:10000;position: fixed;width: 100%;bottom: 0px;background-color: orange;'><iframe style='height: 100%;width: 100%;'/></div>")
                     .appendTo(jQuery(document.body));
@@ -565,8 +561,7 @@ function Translator() {
         {
             if (addedBodySpace)
                 jBody.height(jBody.height() - addedBodySpace);
-        }
-        else
+        } else
         {
             jBody.height(jBody.height() + trnH);
             addedBodySpace = trnH;
@@ -600,9 +595,8 @@ function Translator() {
         var elementToMove = jRow[0].associatedEl;
         if (!elementToMove)
             return;
-        var id = getElementSafeId(elementToMove);//calcolarlo prima dello spostamento
         var jPrevRow = jRow.prev();
-        if (jPrevRow.size() == 0)
+        if (jPrevRow.size() === 0)
             return;
         var prevEl = jPrevRow[0].associatedEl;
         if (!prevEl)
@@ -611,27 +605,15 @@ function Translator() {
         while (true)
         {
             var jTmp = jPrevRow.prev();
-            if (jTmp.size() == 0 || !jTmp[0] || !jTmp[0].associatedEl || jTmp[0].associatedEl != prevEl)
+            if (jTmp.size() === 0 || !jTmp[0] || !jTmp[0].associatedEl || jTmp[0].associatedEl != prevEl)
                 break;
             jPrevRow = jTmp;
         }
         jRow.insertBefore(jPrevRow);
 
-        var offset = -1;
-        var n = elementToMove;
-        while ((n = n.previousSibling) != prevEl)
-        {
-
-            if (n == null)
-                return;
-            offset--;
-        }
-        if (offset != 0) {
-            offset = tr.offsetElement(elementToMove, offset);
-            addMove(id, offset.toString(), isAutoSave());
-            if (!isAutoSave())
-                setModified(true);
-        }
+        jQuery(elementToMove).insertBefore(prevEl);
+        if (!isAutoSave())
+            setModified(true);
     }
     function moveNext()
     {
@@ -639,9 +621,8 @@ function Translator() {
         var elementToMove = jRow[0].associatedEl;
         if (!elementToMove)
             return;
-        var id = getElementSafeId(elementToMove);//calcolarlo prima dello spostamento
         var jNextRow = jRow.next();
-        if (jNextRow.size() == 0)
+        if (jNextRow.size() === 0)
             return;
         var nextEl = jNextRow[0].associatedEl;
         if (!nextEl)
@@ -649,27 +630,14 @@ function Translator() {
         while (true)
         {
             var jTmp = jNextRow.next();
-            if (jTmp.size() == 0 || !jTmp[0] || !jTmp[0].associatedEl || jTmp[0].associatedEl != nextEl)
+            if (jTmp.size() === 0 || !jTmp[0] || !jTmp[0].associatedEl || jTmp[0].associatedEl != nextEl)
                 break;
             jNextRow = jTmp;
         }
         jRow.insertAfter(jNextRow);
-
-        var offset = 1;
-        var n = elementToMove;
-        while ((n = n.nextSibling) != nextEl)
-        {
-            if (n == null)
-                return;
-            offset++;
-        }
-
-        if (offset != 0) {
-            offset = tr.offsetElement(elementToMove, offset);
-            addMove(id, offset.toString(), isAutoSave());
-            if (!isAutoSave())
-                setModified(true);
-        }
+        jQuery(elementToMove).insertAfter(nextEl);
+        if (!isAutoSave())
+            setModified(true);
     }
     function setSkipButtonProperties()
     {
@@ -681,8 +649,8 @@ function Translator() {
         skip = !skip;
         setCookie(skipTranslatedCookie, skip, 365);
         setSkipButtonProperties();
-        if (currentJElement)
-            translateElement(currentJElement[0]);
+        if (currentTU)
+            translateTU(currentTU);
     }
     function setAutosaveButtonProperties()
     {
@@ -710,46 +678,37 @@ function Translator() {
     {
         if (!popup && !confirm(sAlertPopup))
             return;
-        var el = currentJElement ? currentJElement[0] : null;
+        var tu = currentTU ? currentTU : null;
 
         closeTranslatorTable();
 
         popup = !popup;
 
         setPopupButtonProperties();
-        if (el)
-            translateElement(el, function ()
+        if (tu)
+            translateTU(tu, function ()
             {
                 setCookie(popupCookie, popup, 365); //solo se tutto va bene, imposto il cookie per rendere persistente lo stato
             });
     }
-    function upLevel()
+
+    function translateNext(offset)
     {
-        if (!currentJElement)
+        if (!currentTU)
             return;
-
-        var el = getFollowingElement(currentJElement[0], function (n) {
-            return n ? n.parentNode : null
-        }, false)
-        if (el)
-            translateElement(el);
-
+        var i = tr.getTranslationUnits().indexOf(currentTU) + offset;
+        if (i >= 0 && i < tr.getTranslationUnits().length)
+        {
+            translateTU(tr.getTranslationUnits()[i]);
+        }
     }
     function nextSibling()
     {
-        if (!currentJElement)
-            return;
-        var el = getFollowingElement(currentJElement[0], searchNext, true)
-        if (el)
-            translateElement(el);
+        translateNext(1);
     }
     function prevSibling()
     {
-        if (!currentJElement)
-            return;
-        var el = getFollowingElement(currentJElement[0], searchPrev, true)
-        if (el)
-            translateElement(el);
+        translateNext(-1);
     }
     function removeFromArray(b, ar)
     {
@@ -779,14 +738,6 @@ function Translator() {
         ar.push(trn);
         return trn;
     }
-    function addMove(b, t, autosave) {
-        var mov = addToArray(b, t, true, tr.getMoves());
-        if (autosave)
-        {
-            tr.specificSave([], [mov], [], true);
-        }
-        return mov;
-    }
     function adjustTranslation(b, t)
     {
         var beginningSpaces = /^(\s*)/gm;
@@ -799,11 +750,9 @@ function Translator() {
             var targetMatches = t.match(beginningSpaces);
             if (!targetMatches) {
                 adjust = true;
-            }
-            else if (targetMatches.length == 0) {
+            } else if (targetMatches.length == 0) {
                 adjust = true;
-            }
-            else if (targetMatches[0] != prefix)
+            } else if (targetMatches[0] != prefix)
             {
                 adjust = true;
             }
@@ -819,8 +768,7 @@ function Translator() {
             }
             if (targetMatches.length == 0) {
                 adjust = true;
-            }
-            else if (targetMatches[0] != suffix)
+            } else if (targetMatches[0] != suffix)
             {
                 adjust = true;
             }
@@ -860,94 +808,12 @@ function Translator() {
         return ign;
     }
 
-    function addElementToTranslate(val, b, innerEl, propName) {
-        if (!b)
-            b = val;
-        b = tr.prepareString(b);
-        if (b.length === 0 || b === " ")
-            return;
-        var trn = tr.getTranslation(b);
-        var ignore = tr.getIgnore(b);
-        if (skip)
-        {
-            if (trn && trn.getTarget())//filtraggio sulla traduzione
-                return;
-            if (ignore)
-                return;//filtraggio perché non va tradotto
-        }
-
-        if (toTranslate.rootElement !== tr.closestTUElement(innerEl))
-            return;
-
-        var t = trn ? trn.getTarget() : "";
-        var spec = trn ? trn.isPageSpecific() : false;
-        if (trn)
-            b = trn.getBase();
-        toTranslate.push({
-            "b": b,
-            "t": t,
-            "ignore": ignore,
-            "specific": spec,
-            "el": innerEl,
-            "prop": propName
-        });
-
-    }
-
-    function canTranslate(el, onlyFirstLevel)
-    {
-        if (el.nodeName === "#document" || el.nodeName === "#text")
-            return false;
-        toTranslate.length = 0;
-        toTranslate.rootElement = el;
-        tr.applyTextFunction(el, true, true, addElementToTranslate);
-        return toTranslate.length > 0;
-    }
-    function searchNext(n)
-    {
-        var next = n.firstChild ? n.firstChild : n.nextSibling;
-        if (next == null)
-        {
-            while ((n = n.parentNode) != null)
-            {
-                if (n.nextSibling != null)
-                    return n.nextSibling;
-            }
-
-        }
-        return next;
-    }
-
-    function searchPrev(n)
-    {
-        var prev = n.previousSibling;
-        return (prev == null)
-                ? n.parentNode
-                : lastLeaf(prev);
-
-        function lastLeaf(n)
-        {
-            return (n.lastChild)
-                    ? lastLeaf(n.lastChild)
-                    : n;
-        }
-    }
-    function getFollowingElement(el, f, onlyFirstLevel)
-    {
-        var next = f(el);
-        if (!next)
-            return null;
-        return (canTranslate(next, onlyFirstLevel))
-                ? next
-                : getFollowingElement(next, f, onlyFirstLevel)
-    }
     function showOrphans()
     {
         if (orphansWindow && !orphansWindow.closed)
         {
             orphansWindow = window.open("", "orphans", "location=no, menubar=no");
-        }
-        else
+        } else
         {
             orphansWindow = window.open("", "orphans", "location=no, menubar=no");
             orphansWindow.document.title = sOrphanWindowTitle;
@@ -980,17 +846,15 @@ function Translator() {
             return;
 
         var localTranslations = [];
-        var localMoves = [];
         var localIgnores = [];
-        tr.parseTranslations(strings, localTranslations, localMoves, localIgnores);
+        tr.parseTranslations(strings, localTranslations, localIgnores);
         var table = jQuery('.translatorcontent>tbody', jOrphansTable);
         table.empty();
 
         if (localIgnores.length == 0 && localTranslations.length == 0)
         {
             jQuery('.notranslations h2', jOrphansTable).text(sNoOrphans);
-        }
-        else
+        } else
         {
             for (var i = 0; i < localIgnores.length; i++)
             {
@@ -1040,8 +904,7 @@ function Translator() {
                 var matches = base.match(pattern);
 
                 el.replaceSelection(matches[i], true);
-            }
-            else
+            } else
             {
                 el.replaceSelection('%' + 0 + '%', true);
             }
@@ -1093,8 +956,7 @@ function Translator() {
             if (el.nodeName == "#text")
             {
                 s += "-" + tr.prepareString(el.nodeValue);
-            }
-            else
+            } else
             {
                 if (s.length > 0)
                     s += '>';
@@ -1134,7 +996,8 @@ function Translator() {
     var jPop = jQuery("<div class='jsb_notranslate' style='cursor:pointer;position:absolute;display:inline-block;'><img></img></div>", getTranslatorDocument())
             .appendTo(document.body)
             .click(function () {
-                translateElement(currentHooked);
+                if (currentHooked)
+                    translateTU(getTranslationUnit(currentHooked));
             });
     jQuery("img", jPop)
             .attr("src", tr.getJsbDomain() + '/img/dotranslate.png');
@@ -1164,11 +1027,7 @@ function Translator() {
         }
     };
 
-    var fixedElements = ["#text", "HTML", "BODY", "HEAD", "SCRIPT", "FROM", "FRAME", "IFRAME"];
-    function canMoveElement(el)
-    {
-        return el ? jQuery.inArray(el.nodeName, fixedElements) == -1 : false;
-    }
+
     function isInViewPort(jEl)
     {
         var win = jQuery(window);
@@ -1187,10 +1046,26 @@ function Translator() {
         return (!(viewport.right < bounds.left || viewport.left > bounds.right || viewport.bottom < bounds.top || viewport.top > bounds.bottom));
 
     }
-    function translateElement(el, callback)
+    function getTranslationUnit(el)
+    {
+        for (var i = 0; i < tr.getTranslationUnits().length; i++)
+        {
+            var tu = tr.getTranslationUnits()[i];
+            if (tu.owner === el)
+            {
+                return tu;
+            }
+        }
+
+    }
+    function translateTU(tu, callback)
     {
         try
         {
+            if (!tu)
+                return;
+            currentTU = tu;
+            var el = currentTU.owner;
             if (!el || !isValid(el))
                 return;
             if (el.scrollIntoView && !isInViewPort(jQuery(el)))
@@ -1199,15 +1074,14 @@ function Translator() {
             forceChange();//scateno il change sul campo che stavo editando per recepirne i cambiamenti
             if (flasher)
                 flasher.stop();
-            currentJElement = jQuery(el);
-            flasher = new FlashAnimator(currentJElement);
+            flasher = new FlashAnimator(jQuery(el));
             var rootText = getFullPath(el);
             var titleEl = jQuery('.inlineTranslatorTitle', getTranslatorDocument());
             titleEl.text(sTranslating + rootText);
             var table = jQuery('.translatorcontent>tbody', handle);
             table.empty();
 
-            function addRow(innerEl, base, target, propName, ignore, specific)
+            function addRow(innerEl, canMovePrev, canMoveNext, base, target, propName, ignore, specific)
             {
                 var html = "<tr class='textRow'>" +
                         "<td class='jsb_notranslate titleColumn'><span class='rowtitle'/></td>" +
@@ -1221,33 +1095,29 @@ function Translator() {
                 objs.targetEl = innerEl;
 
                 var parent = innerEl;
-                while (parent && parent.parentNode != el)
+                while (parent && parent.parentNode !== el)
                     parent = parent.parentNode;
                 var row = jQuery(html, getTranslatorDocument())
                         .appendTo(table).each(function () {
                     this.associatedEl = parent;
                 });
-                if (canMoveElement(parent))
-                {
-                    var jArrowCol = jQuery(".arrowColumn", row);
-
-                    jQuery("<img class='moveprev'/>", getTranslatorDocument())
-                            .appendTo(jArrowCol)
-                            .attr("src", tr.getJsbDomain() + '/img/dropup.png')
-                            .click(movePrev)
-                            .attr("title", sMoveBefore)
-                            .each(function () {
-                                this.rowObjs = objs;
-                            });
-                    jQuery("<img class='movenext'/>", getTranslatorDocument())
-                            .appendTo(jArrowCol)
-                            .attr("src", tr.getJsbDomain() + '/img/dropdown.png')
-                            .attr("title", sMoveNext)
-                            .click(moveNext)
-                            .each(function () {
-                                this.rowObjs = objs;
-                            });
-                }
+                var jArrowCol = jQuery(".arrowColumn", row);
+                jQuery("<img class='moveprev'/>", getTranslatorDocument())
+                        .appendTo(jArrowCol)
+                        .attr("src", tr.getJsbDomain() + '/img/dropup.png')
+                        .click(movePrev)
+                        .attr("title", sMoveBefore)
+                        .each(function () {
+                            this.rowObjs = objs;
+                        });
+                jQuery("<img class='movenext'/>", getTranslatorDocument())
+                        .appendTo(jArrowCol)
+                        .attr("src", tr.getJsbDomain() + '/img/dropdown.png')
+                        .attr("title", sMoveNext)
+                        .click(moveNext)
+                        .each(function () {
+                            this.rowObjs = objs;
+                        });
                 var jBase = jQuery('textarea.baseInput', row)
                         .text(base)
                         .each(function () {
@@ -1303,41 +1173,23 @@ function Translator() {
 
                 var col = jQuery('.rowtitle', row);
                 var lbl = getFullPath(innerEl).substr(rootText.length);
-                var linkEl = null;
                 if (propName) {
                     lbl += '@' + propName;
-                    linkEl = innerEl;//se è un attributo, il link navigherà sul nodo di appartenenza
-                }
-                else {
-                    linkEl = innerEl.parentNode;//se è un nodo di testo, il link navigherà sul parent del nodo di appartenenza
                 }
                 col.text(lbl);
-                if (linkEl != el) {
-                    col.attr("href", "javascript::void(0);");
-                    col.attr("title", "Go to " + getFullPath(linkEl));
-                    col[0].linkEl = linkEl;
-                    col.click(function () {
-                        translateElement(this.linkEl);
-                    });
-                }
-
             }
 
-            toTranslate.length = 0;
-            toTranslate.rootElement = el;
-            tr.applyTextFunction(el, true, true, addElementToTranslate);
 
-            if (toTranslate.length === 0)
+            if (!currentTU)
             {
                 jQuery('.notranslations', handle).show();
-            }
-            else
+            } else
             {
                 jQuery('.notranslations', handle).hide();
-                for (var i = 0; i < toTranslate.length; i++)
+                for (var i = 0; i < currentTU.length; i++)
                 {
-                    var item = toTranslate[i];
-                    addRow(item.el, item.b, item.t, item.prop, item.ignore, item.specific);
+                    var item = currentTU[i];
+                    addRow(item.owner, i != 0, i != currentTU.length - 1, item.base, item.target, item.propertyName, item.ignore, item.specific);
                 }
             }
 
@@ -1367,12 +1219,10 @@ function Translator() {
                     .width(16)
                     .height(16);
             handle.defaultView();
-        }
-        catch (e)
+        } catch (e)
         {
             alert(e);
-        }
-        finally
+        } finally
         {
             if (callback)
                 callback();
@@ -1409,9 +1259,9 @@ function Translator() {
         }
         //calcolo le traduzioni da tenere perché presenti nella pagina
         tr.applyTextFunction(document.documentElement, true, true, findUsedTranslations);
-        tr.specificSave(localTranslations, tr.getMoves(), localIgnores, false)
+        tr.specificSave(localTranslations, localIgnores, false)
     }
-    this.specificSave = function (translations, moves, ignores, appendToExisting) {
+    this.specificSave = function (translations, ignores, appendToExisting) {
         var data = {};
         data.src = tr.getPageUrl();
         data.targetLocale = tr.getTargetLocale();
@@ -1423,14 +1273,6 @@ function Translator() {
             data["b" + index] = trn.getBase();
             data["t" + index] = trn.getTarget();
             data["p" + index] = trn.isPageSpecific();
-            index++;
-        }
-        index = 0;
-        for (var i = 0; i < moves.length; i++) {
-            var trn = moves[i];
-            data["bm" + index] = trn.getBase();
-            data["tm" + index] = trn.getTarget();
-            data["pm" + index] = trn.isPageSpecific();
             index++;
         }
         index = 0;
@@ -1463,8 +1305,7 @@ function Translator() {
                 translatorWindow.close();
                 translatorWindow = null;
             }
-        }
-        else
+        } else
         {
             if (handle) {
                 forceChange();
@@ -1477,28 +1318,28 @@ function Translator() {
         if (tr.isBaseLocale())
             return;
         var missingTranslations = [];
-
-        tr.applyTextFunction(document.documentElement, true, true, function (val, oldVal) {
-            // nell'oldVal ho la stringa originale, se ho già tradotto, oppure
-            // nulla,
-            // e allora la stringa originale è in val
-            // la traduzione, se c'è, è in val
-            var b = oldVal ? oldVal : val;
-
-            b = tr.prepareString(b);
-            if (b.length == 0 || b == " ")
-                return null;
-            if (skipAutomaticTranslation(b))
-                return null;
-            for (var i = 0; i < missingTranslations.length; i++) {
-                var trn = missingTranslations[i];
-                if (trn.getBase() == b) {
-                    continue;
-                }
-            }
-            missingTranslations.push(tr.createTranslation(b, "", false));
-        });
-
+        /*
+         tr.applyTextFunction(document.documentElement, true, true, function (val, oldVal) {
+         // nell'oldVal ho la stringa originale, se ho già tradotto, oppure
+         // nulla,
+         // e allora la stringa originale è in val
+         // la traduzione, se c'è, è in val
+         var b = oldVal ? oldVal : val;
+         
+         b = tr.prepareString(b);
+         if (b.length == 0 || b == " ")
+         return null;
+         if (skipAutomaticTranslation(b))
+         return null;
+         for (var i = 0; i < missingTranslations.length; i++) {
+         var trn = missingTranslations[i];
+         if (trn.getBase() == b) {
+         continue;
+         }
+         }
+         missingTranslations.push(tr.createTranslation(b, "", false));
+         });
+         */
         function getSerializedTranslations() {
             var s = new String();
             for (var i = 0; i < missingTranslations.length; i++) {
@@ -1518,11 +1359,11 @@ function Translator() {
                     "src": tr.getPageUrl(),
                     "strings": getSerializedTranslations()
                 },
-        function () {
-            tr.addScript(endautotranslateScript + '?src='
-                    + encodeURIComponent(tr.getPageUrl()) + '&loc='
-                    + encodeURIComponent(tr.getTargetLocale()));
-        });
+                function () {
+                    tr.addScript(endautotranslateScript + '?src='
+                            + encodeURIComponent(tr.getPageUrl()) + '&loc='
+                            + encodeURIComponent(tr.getTargetLocale()));
+                });
 
     };
     function skipAutomaticTranslation(b)
@@ -1540,9 +1381,8 @@ function Translator() {
     this.addAutomaticTranslations = function (strings)
     {
         var localTranslations = [];
-        var localMoves = [];
         var localIgnores = [];
-        tr.parseTranslations(strings, localTranslations, localMoves, localIgnores);
+        tr.parseTranslations(strings, localTranslations, localIgnores);
 
         for (var i = 0; i < localTranslations.length; i++)
         {
@@ -1566,9 +1406,9 @@ function Translator() {
     }
     function openTranslatorAtFirst()
     {
-        var el = getFollowingElement(document, searchNext, true)
-        if (el)
-            translateElement(el);
+        var tu = tr.getTranslationUnits().length == 0 ? null : tr.getTranslationUnits()[0];
+        if (tu)
+            translateTU(tu);
     }
     this.sendNewToolbarPosition = function () {
         var pos = tr.getPos();
@@ -1644,8 +1484,7 @@ jQuery(function () {
                 e.preventDefault();
         });
 
-    }
-    catch (e) {
+    } catch (e) {
         alert(e);
     }
 });

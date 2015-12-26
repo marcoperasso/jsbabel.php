@@ -28,6 +28,30 @@ function hexDecode(s)
     }
     return r;
 }
+function parents(node) {
+  var nodes = [node]
+  for (; node; node = node.parentNode) {
+    nodes.unshift(node)
+  }
+  return nodes
+}
+
+function commonAncestor(node1, node2) {
+  var parents1 = parents(node1)
+  var parents2 = parents(node2)
+
+  if (parents1[0] != parents2[0]) throw "No common ancestor!"
+
+  for (var i = 0; i < parents1.length; i++) {
+    if (parents1[i] != parents2[i]) return parents1[i - 1]
+  }
+}
+function TranslationElement(owner, base, propertyName)
+{
+    this.owner = owner;
+    this.base = base;
+    this.propertyName = propertyName;
+}
 function Babel() {
     var jsbHost = "http://localhost:610/jsbabel";
     var dropUpImg = '/img/dropup.gif';
@@ -38,7 +62,7 @@ function Babel() {
     var getLogoffScript = '/translator/do_logoff';
     var translations = [];
     var missingTranslations = [];
-    var moves = [];
+    var translationUnits = [];
     var ignores = [];
     var jsbDomain = jsbHost;
     var trnCnt = null;
@@ -60,7 +84,6 @@ function Babel() {
     var imgH = 20;
     var dropdownHeight = 0;
     this.TypeTextChar = '*';
-    this.TypeMoveChar = '?';
     this.TypeImageChar = '!';
     this.TypeIgnoreChar = ':';
     this.translating = false;
@@ -131,6 +154,7 @@ function Babel() {
         };
     }
     this.setTranslationData = function (data, dataVersion, strings, stringsVersion) {
+        tr.translateTree(document.documentElement);
         var persist = (trnDataVersion != dataVersion) || (trnStringsVersion != stringsVersion);
         trnDataVersion = dataVersion;
         trnStringsVersion = stringsVersion;
@@ -138,8 +162,7 @@ function Babel() {
             tr.applyTranslationData(data);
         if (strings)
         {
-            tr.parseTranslations(strings, translations, moves, ignores);
-            tr.translateTree(document.documentElement);
+            tr.parseTranslations(strings, translations, ignores);
         }
 
         if (persist && persistencyManager)
@@ -156,7 +179,7 @@ function Babel() {
                 return 1;
             return 0;
         });
-        
+
         targetLocale = null;
         //first one is target locale
         for (var i = 0; i < trnData.ld.length; i++) {
@@ -209,6 +232,9 @@ function Babel() {
     };
     this.getTranslatorToolbar = function () {
         return trnCnt;
+    };
+    this.getTranslationUnits = function () {
+        return translationUnits;
     };
     this.getJsbDomain = function () {
         return jsbDomain;
@@ -370,15 +396,11 @@ function Babel() {
     this.getTranslations = function () {
         return translations;
     };
-    this.getMoves = function () {
-        return moves;
-    };
     this.getIgnores = function () {
         return ignores;
     };
-    this.parseTranslations = function (s, localTranslations, localMoves, localIgnores) {
+    this.parseTranslations = function (s, localTranslations, localIgnores) {
         localTranslations.length = 0;
-        localMoves.length = 0;
         localIgnores.length = 0;
         var currentIndex = 0;
         while (currentIndex < s.length) {
@@ -386,9 +408,7 @@ function Babel() {
             var b = parseString(s);
             var t = parseString(s);
             var specific = s.charAt(currentIndex++) == '1';
-            if (typeChar == tr.TypeMoveChar)
-                localMoves.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
-            else if (typeChar == tr.TypeTextChar)
+            if (typeChar == tr.TypeTextChar)
                 localTranslations.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
             else if (typeChar == tr.TypeIgnoreChar)
                 localIgnores.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
@@ -401,7 +421,7 @@ function Babel() {
                 if (currentIndex >= s.length)
                     throw "Invalid translation string:\r\n" + s;
                 ch = s.charAt(currentIndex++); //il separatore è * per le traduzioni, ? per gli spostamenti di dom
-                if (ch == tr.TypeTextChar || ch == tr.TypeMoveChar || ch == tr.TypeIgnoreChar)
+                if (ch == tr.TypeTextChar || ch == tr.TypeIgnoreChar)
                 {
                     typeChar = ch;
                     break;
@@ -469,90 +489,111 @@ function Babel() {
 
         return isNoTranslate(jQuery(el));
     };
-    this.applyTextFunction = function (el, recursive, includeScript, f) {
-        var added = 0;
+    this.parseTranslationUnits = function (el, tuCurrent, nested) {
         try
         {
             if (tr.skipTranslate(el))
-                return;
+                return tuCurrent;
             var name = el.nodeName;
             if (!name)
-                return;
+                return tuCurrent;
             if (name == "STYLE" || name == "TEXTAREA")
-                return;
+                return tuCurrent;
             var fOut = null;
             if (name == "#text")
             {
-                if (fOut = f(el.nodeValue, el.oldNodeValue, el)) {
-                    try {
-                        if (!el.oldNodeValue)
-                            el.oldNodeValue = el.nodeValue;
-                    } catch (e) {
-                        // bug di IE
+                var toTranslate = tr.prepareString(el.nodeValue);
+                if (toTranslate.length != 0 && toTranslate != " ")
+                {
+                    if (!tuCurrent)
+                    {
+                        tuCurrent = [];
                     }
-                    el.nodeValue = fOut;
+                    tuCurrent.push(new TranslationElement(el, toTranslate, null));
+                    tuCurrent.owner = tuCurrent.owner ? commonAncestor(tuCurrent.owner, el.parentNode) : el.parentNode;
                 }
 
-            }
-            else if (name == "SCRIPT")
+            } else if (name == "SCRIPT")
             {
-                if (includeScript)
+                if (tuCurrent)//closes current TU
                 {
-                    var text;
-                    var src;
-                    if (el.src)
+                    translationUnits.push(tuCurrent);
+                    tuCurrent = null;
+                }
+                var text;
+                var src;
+                if (el.src)
+                {
+                    //parso solo gli script che provengono dal dominio del sito
+                    if (el.src.indexOf(tr.getPageDomain(), 0) == 0)
                     {
-                        //parso solo gli script che provengono dal dominio del sito
-                        if (el.src.indexOf(tr.getPageDomain(), 0) == 0)
-                        {
-                            src = el.src.substr(tr.getPageDomain().length)
-                            jQuery.ajax({
-                                url: el.src,
-                                success: function (data) {
-                                    text = data;
-                                },
-                                async: false,
-                                cache: true,
-                                dataType: "text"
-                            });
-                        }
+                        src = el.src.substr(tr.getPageDomain().length)
+                        jQuery.ajax({
+                            url: el.src,
+                            success: function (data) {
+                                text = data;
+                            },
+                            async: false,
+                            cache: true,
+                            dataType: "text"
+                        });
                     }
-                    else
+                } else
+                {
+                    src = location.href.substr(tr.getPageDomain().length)
+                    text = el.innerHTML;
+                }
+                if (text)
+                {
+                    var reg = /_jsb\s*\(\s*"((.(?!"\s*\)))*.)/gm;
+                    var tokens;
+
+                    while ((tokens = reg.exec(text)))
                     {
-                        src = location.href.substr(tr.getPageDomain().length)
-                        text = el.innerHTML;
-                    }
-                    if (text)
-                    {
-                        var reg = /_jsb\s*\(\s*"((.(?!"\s*\)))*.)/gm;
-                        var tokens;
-                        while ((tokens = reg.exec(text)))
-                            f(tokens[1], tokens[1], el, "src:" + src);
+                        var tu = [];
+                        tu.push(new TranslationElement(el, tokens[1], null));
+                        tu.owner = el;
+                        translationUnits.push(tu);
                     }
                 }
-                return;
-            }
-            else if (name == "INPUT") {
+
+
+            } else if (name == "INPUT") {
+                if (tuCurrent)//closes current TU
+                {
+                    translationUnits.push(tuCurrent);
+                    tuCurrent = null;
+                }
                 var type = el.type;
                 if (type == "hidden" || type == "text" || type == "password"
                         || type == "file")
-                    return;
-                if (typeof el.value !== "undefined"
-                        && (fOut = f(el.value, el.jsbOldValue, el, "value"))) {
-                    if (!el.jsbOldValue)
-                        el.jsbOldValue = el.value;
-                    el.value = fOut;
+                    return tuCurrent;
+                if (typeof el.value !== "undefined") {
+                    var tu = [];
+                    tu.owner = el;//the element which caused ths creation of this TU
+                    tu.push(new TranslationElement(el, el.value, null));
+                    translationUnits.push(tu);
                 }
-            }
-            function processAttribute(attrName)
+            } else
             {
-                var oldAttr = "jsbOld" + attrName;
-                if ((fOut = f(el[attrName], el[oldAttr], el, attrName))) {
-                    if (!el[oldAttr])
-                        el[oldAttr] = el[attrName];
-                    el[attrName] = fOut;
+                var display = jQuery(el).css("display");
+                if (display != "inline")
+                {
+                    if (tuCurrent)//closes current TU
+                    {
+                        translationUnits.push(tuCurrent);
+                        tuCurrent = null;
+                    }
                 }
+
+                for (var i = 0; i < el.childNodes.length; i++)
+                {
+                    var child = el.childNodes[i];
+                    tuCurrent = tr.parseTranslationUnits(child, tuCurrent, true);
+                }
+
             }
+
             function isValidAttribute(attr)
             {
                 if ("alt" === attr
@@ -593,20 +634,25 @@ function Babel() {
                 for (var i = 0, attrs = el.attributes, l = attrs.length; i < l; i++) {
                     var attr = attrs.item(i).nodeName;
                     if (isValidAttribute(attr))
-                        processAttribute(attr);
+                    {
+                        var tu = [];
+                        tu.owner = el;//the element which caused ths creation of this TU
+                        tu.push(new TranslationElement(el, el[attr], attr));
+                        translationUnits.push(tu);
+                    }
                 }
             }
 
-
-            if (recursive)
-                for (var i = 0; i < el.childNodes.length; i++)
-                    tr.applyTextFunction(el.childNodes[i], recursive, includeScript, f);
-        }
-        catch (e)
+        } catch (e)
         {
 
         }
-
+        if (tuCurrent && !nested)//closes current TU at the end
+        {
+            translationUnits.push(tuCurrent);
+            tuCurrent = null;
+        }
+        return tuCurrent;
     };
     this.prepareString = function (s) {
         s = s.replace(trimRegExp, " ");
@@ -678,47 +724,17 @@ function Babel() {
 
     this.translateTree = function (root) {
         missingTranslations.length = 0;
-        //prima applico le inversioni, altrimenti non funziona il check
-        for (var i = 0; i < moves.length; i++) {
-            var t = moves[i];
-            tr.applyMove(t.getBase(), t.getTarget());
-        }
+        translationUnits.length = 0;
+        tr.parseTranslationUnits(root);
         //poi applico le traduzioni
-        tr.applyTextFunction(root, true, false, function (val, oldVal, el) {
-            var toTranslate = oldVal ? oldVal : val;
-            if (!toTranslate)
-                return null;
-            return tr.translate(toTranslate);
-        });
+        /* tr.getTranslationUnits(root, true, false, function (val, oldVal) {
+         var toTranslate = oldVal ? oldVal : val;
+         if (!toTranslate)
+         return null;
+         return tr.translate(toTranslate);
+         });*/
     };
-    this.applyMove = function (key, val)
-    {
-        if (val == 0)
-            return;
-        var idx = key.indexOf("-");
-        if (idx == -1)
-            return;
-        var selector = key.substring(0, idx);
-        var el = jQuery(selector);
-        if (el && el.size() == 1)
-        {
-            var node = el[0];
-            var text = key.substring(idx + 1);
-            for (var i = 0; i < node.childNodes.length; i++)
-            {
-                var childEl = node.childNodes[i];
-                if (!childEl.nodeValue)
-                    continue;
-                var toTranslate = tr.prepareString(childEl.nodeValue);
-                if (toTranslate == text)
-                {
-                    if (!childEl.jsbOffset) //solo se non l'ho già applicato!
-                        tr.offsetElement(childEl, val);
-                    break;
-                }
-            }
-        }
-    };
+
     this.offsetElement = function (el, offset)
     {
         if (!el)
@@ -770,8 +786,7 @@ function Babel() {
             if (l == -1)
                 l = pageUrl.length;
             pageDomain = pageUrl.substr(0, l);
-        }
-        else
+        } else
         {
             pageUrl = location.href;
             pageDomain = "http://" + location.host;
@@ -876,8 +891,7 @@ function Babel() {
                     {
                         data = JSON.parse(results.rows.item(0).DATA);
                         trnDataVersion = results.rows.item(0).VERSION;
-                    }
-                    catch (e)
+                    } catch (e)
                     {
                         data = "";
                         trnDataVersion = 0;
