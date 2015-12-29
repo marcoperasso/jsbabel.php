@@ -29,22 +29,24 @@ function hexDecode(s)
     return r;
 }
 function parents(node) {
-  var nodes = [node]
-  for (; node; node = node.parentNode) {
-    nodes.unshift(node)
-  }
-  return nodes
+    var nodes = [node]
+    for (; node; node = node.parentNode) {
+        nodes.unshift(node)
+    }
+    return nodes
 }
 
 function commonAncestor(node1, node2) {
-  var parents1 = parents(node1)
-  var parents2 = parents(node2)
+    var parents1 = parents(node1)
+    var parents2 = parents(node2)
 
-  if (parents1[0] != parents2[0]) throw "No common ancestor!"
+    if (parents1[0] != parents2[0])
+        throw "No common ancestor!"
 
-  for (var i = 0; i < parents1.length; i++) {
-    if (parents1[i] != parents2[i]) return parents1[i - 1]
-  }
+    for (var i = 0; i < parents1.length; i++) {
+        if (parents1[i] != parents2[i])
+            return parents1[i - 1]
+    }
 }
 function TranslationElement(owner, base, propertyName)
 {
@@ -484,12 +486,12 @@ function Babel() {
     this.skipTranslate = function (el) {
         function isNoTranslate(jEl)
         {
-            return jEl.size() != 0 && (jEl.hasClass('jsb_notranslate') || isNoTranslate(jEl.parent()));
+            return jEl.size() !== 0 && (jEl.hasClass('jsb_notranslate') || isNoTranslate(jEl.parent()));
         }
 
         return isNoTranslate(jQuery(el));
     };
-    this.parseTranslationUnits = function (el, tuCurrent, nested) {
+    this.extractTranslationUnits = function (el, tuCurrent) {
         try
         {
             if (tr.skipTranslate(el))
@@ -499,7 +501,6 @@ function Babel() {
                 return tuCurrent;
             if (name == "STYLE" || name == "TEXTAREA")
                 return tuCurrent;
-            var fOut = null;
             if (name == "#text")
             {
                 var toTranslate = tr.prepareString(el.nodeValue);
@@ -567,19 +568,15 @@ function Babel() {
                 var type = el.type;
                 if (type == "hidden" || type == "text" || type == "password"
                         || type == "file")
-                    return tuCurrent;
-                if (typeof el.value !== "undefined") {
-                    var tu = [];
-                    tu.owner = el;//the element which caused ths creation of this TU
-                    tu.push(new TranslationElement(el, el.value, null));
-                    translationUnits.push(tu);
-                }
+                    return null;
+                //I'm interested in value attribute: will be extracted later
+                
             } else
             {
                 var display = jQuery(el).css("display");
-                if (display != "inline")
+                if (display !== "inline")
                 {
-                    if (tuCurrent)//closes current TU
+                    if (tuCurrent)//a new non inline elemente starts: close current TU if existing
                     {
                         translationUnits.push(tuCurrent);
                         tuCurrent = null;
@@ -589,9 +586,13 @@ function Babel() {
                 for (var i = 0; i < el.childNodes.length; i++)
                 {
                     var child = el.childNodes[i];
-                    tuCurrent = tr.parseTranslationUnits(child, tuCurrent, true);
+                    tuCurrent = tr.extractTranslationUnits(child, tuCurrent);
                 }
-
+                if (tuCurrent && display !== "inline")//a non inline elemente ends: close current TU if existing
+                {
+                    translationUnits.push(tuCurrent);
+                    tuCurrent = null;
+                }
             }
 
             function isValidAttribute(attr)
@@ -647,11 +648,7 @@ function Babel() {
         {
 
         }
-        if (tuCurrent && !nested)//closes current TU at the end
-        {
-            translationUnits.push(tuCurrent);
-            tuCurrent = null;
-        }
+
         return tuCurrent;
     };
     this.prepareString = function (s) {
@@ -725,7 +722,7 @@ function Babel() {
     this.translateTree = function (root) {
         missingTranslations.length = 0;
         translationUnits.length = 0;
-        tr.parseTranslationUnits(root);
+        tr.extractTranslationUnits(root);
         //poi applico le traduzioni
         /* tr.getTranslationUnits(root, true, false, function (val, oldVal) {
          var toTranslate = oldVal ? oldVal : val;

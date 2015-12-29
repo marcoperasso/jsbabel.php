@@ -12,7 +12,9 @@ class Home extends MY_Controller {
     public function index() {
         $this->load->view('home_not_logged.html');
     }
-   
+   public function test() {
+        $this->load->view('test.html');
+    }
     function data() {
         $data = new stdClass();
         $data->user = $this->get_user();
