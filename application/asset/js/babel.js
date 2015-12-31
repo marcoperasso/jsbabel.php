@@ -1,3 +1,8 @@
+var PositionChar = '%';
+var TypeTextChar = '*';
+var TypeImageChar = '!';
+var TypeIgnoreChar = ':';
+
 function setCookie(n, value, exdays) {
     var exdate = new Date();
     exdate.setDate(exdate.getDate() + exdays);
@@ -48,11 +53,133 @@ function commonAncestor(node1, node2) {
             return parents1[i - 1]
     }
 }
-function TranslationElement(owner, base, propertyName)
+function TranslationUnit()
 {
+    this.isTranslated = function()
+    {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i].target)
+                return true;;
+        }
+        return false;
+    }
+    this.toBaseString = function ()
+    {
+        var ret = "";
+        for (var i = 0; i < this.length; i++) {
+            ret += this[i].base;
+        }
+        return ret;
+    };
+
+    this.toTargetString = function ()
+    {
+        var ret = "";
+        for (var i = 0; i < this.length; i++) {
+            var tuEl = this[i];
+            if (tuEl.position != null)
+            {
+                ret += tuEl.position;
+                ret += PositionChar;
+            }
+            ret += tuEl.target.length;
+            ret += TypeTextChar;
+            ret += tuEl.target;
+        }
+        return ret;
+    };
+    this.applyTranslation = function ()
+    {
+        var needMove = false;
+        for (var i = 0; i < this.length; i++) {
+            var tuEl = this[i];
+            if (tuEl.target)
+            {
+                if (tuEl.propertyName)
+                    tuEl.owner[tuEl.propertyName] = tuEl.target;
+                else
+                    tuEl.owner.nodeValue = tuEl.target;
+            }
+
+            if (tuEl.position != null)
+            {
+                needMove = true;
+                tuEl.sortingPosition = tuEl.position;
+            } else
+            {
+                tuEl.sortingPosition = i;
+            }
+        }
+
+        if (needMove)
+        {
+            var itemsArr = [];
+            for (var i = 0; i < this.length; i++)
+                itemsArr.push(this[i]);
+            itemsArr.sort(function (a, b) {
+                return a.sortingPosition === b.sortingPosition
+                        ? 0
+                        : (a.sortingPosition > b.sortingPosition ? 1 : -1);
+            });
+
+            for (i = 0; i < itemsArr.length; ++i) {
+                this.owner.appendChild(itemsArr[i].rootEl);
+            }
+
+        }
+    }
+    this.parseTargetString = function (s)
+    {
+        var currentIndex = 0, currentTUIndex = 0;
+        while (currentIndex < s.length) {
+            if (currentTUIndex >= this.length)
+                return;
+            var tu = this[currentTUIndex++];
+            var pos = null;
+            tu.target = parseString(s);
+            tu.position = pos;
+        }
+
+        function parseString(s) {
+            var ch;
+            var sb = "";
+            while (true) {
+                if (currentIndex >= s.length)
+                    throw "Invalid translation unit string:\r\n" + s;
+                ch = s.charAt(currentIndex++);
+                if (ch == PositionChar)
+                {
+                    pos = parseInt(sb);
+                    sb = "";
+                } else if (ch == TypeTextChar)
+                {
+                    break;
+                }
+                sb += ch;
+            }
+            var l = parseInt(sb);
+
+            return s.substring(currentIndex, currentIndex = currentIndex + l);
+        }
+    }
+
+}
+TranslationUnit.prototype = [];
+
+
+function TranslationElement(tu, owner, base, propertyName)
+{
+    this.tu = tu;
     this.owner = owner;
     this.base = base;
+    this.target = "";
+    this.position = null;
     this.propertyName = propertyName;
+
+    this.toString = function ()
+    {
+        return base;
+    }
 }
 function Babel() {
     var jsbHost = "http://localhost:610/jsbabel";
@@ -85,9 +212,6 @@ function Babel() {
     var pageUrl = null;
     var imgH = 20;
     var dropdownHeight = 0;
-    this.TypeTextChar = '*';
-    this.TypeImageChar = '!';
-    this.TypeIgnoreChar = ':';
     this.translating = false;
     var SiteAdmin = 1;
     var SiteOwner = 2;
@@ -156,7 +280,11 @@ function Babel() {
         };
     }
     this.setTranslationData = function (data, dataVersion, strings, stringsVersion) {
-        tr.translateTree(document.documentElement);
+        missingTranslations.length = 0;
+        translationUnits.length = 0;
+        //first, extract all translation units from dom
+        this.extractTranslationUnits(document.documentElement);
+
         var persist = (trnDataVersion != dataVersion) || (trnStringsVersion != stringsVersion);
         trnDataVersion = dataVersion;
         trnStringsVersion = stringsVersion;
@@ -165,6 +293,7 @@ function Babel() {
         if (strings)
         {
             tr.parseTranslations(strings, translations, ignores);
+            tr.applyTranslations();
         }
 
         if (persist && persistencyManager)
@@ -410,9 +539,9 @@ function Babel() {
             var b = parseString(s);
             var t = parseString(s);
             var specific = s.charAt(currentIndex++) == '1';
-            if (typeChar == tr.TypeTextChar)
+            if (typeChar == TypeTextChar)
                 localTranslations.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
-            else if (typeChar == tr.TypeIgnoreChar)
+            else if (typeChar == TypeIgnoreChar)
                 localIgnores.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
         }
 
@@ -423,7 +552,7 @@ function Babel() {
                 if (currentIndex >= s.length)
                     throw "Invalid translation string:\r\n" + s;
                 ch = s.charAt(currentIndex++); //il separatore è * per le traduzioni, ? per gli spostamenti di dom
-                if (ch == tr.TypeTextChar || ch == tr.TypeIgnoreChar)
+                if (ch == TypeTextChar || ch == TypeIgnoreChar)
                 {
                     typeChar = ch;
                     break;
@@ -499,18 +628,18 @@ function Babel() {
             var name = el.nodeName;
             if (!name)
                 return tuCurrent;
-            if (name == "STYLE" || name == "TEXTAREA")
+            if (name === "STYLE" || name == "TEXTAREA")
                 return tuCurrent;
-            if (name == "#text")
+            if (name === "#text")
             {
                 var toTranslate = tr.prepareString(el.nodeValue);
-                if (toTranslate.length != 0 && toTranslate != " ")
+                if (toTranslate.length !== 0 && toTranslate !== " ")
                 {
                     if (!tuCurrent)
                     {
-                        tuCurrent = [];
+                        tuCurrent = new TranslationUnit();
                     }
-                    tuCurrent.push(new TranslationElement(el, toTranslate, null));
+                    tuCurrent.push(new TranslationElement(tuCurrent, el, toTranslate, null));
                     tuCurrent.owner = tuCurrent.owner ? commonAncestor(tuCurrent.owner, el.parentNode) : el.parentNode;
                 }
 
@@ -551,8 +680,8 @@ function Babel() {
 
                     while ((tokens = reg.exec(text)))
                     {
-                        var tu = [];
-                        tu.push(new TranslationElement(el, tokens[1], null));
+                        var tu = new TranslationUnit();
+                        tu.push(new TranslationElement(tu, el, tokens[1], null));
                         tu.owner = el;
                         translationUnits.push(tu);
                     }
@@ -570,7 +699,7 @@ function Babel() {
                         || type == "file")
                     return null;
                 //I'm interested in value attribute: will be extracted later
-                
+
             } else
             {
                 var display = jQuery(el).css("display");
@@ -636,9 +765,9 @@ function Babel() {
                     var attr = attrs.item(i).nodeName;
                     if (isValidAttribute(attr))
                     {
-                        var tu = [];
+                        var tu = new TranslationUnit();
                         tu.owner = el;//the element which caused ths creation of this TU
-                        tu.push(new TranslationElement(el, el[attr], attr));
+                        tu.push(new TranslationElement(tu, el, el[attr], attr));
                         translationUnits.push(tu);
                     }
                 }
@@ -719,11 +848,18 @@ function Babel() {
             location.reload();
     }
 
-    this.translateTree = function (root) {
-        missingTranslations.length = 0;
-        translationUnits.length = 0;
-        tr.extractTranslationUnits(root);
-        //poi applico le traduzioni
+    this.applyTranslations = function () {
+        for (var i = 0; i < translationUnits.length; i++)
+        {
+            var tu = translationUnits[i];
+            var translated = tr.translate(tu.toBaseString());
+            if (translated)
+            {
+                tu.parseTargetString(translated);
+                tu.applyTranslation();
+            }
+        }
+        //then apply translations
         /* tr.getTranslationUnits(root, true, false, function (val, oldVal) {
          var toTranslate = oldVal ? oldVal : val;
          if (!toTranslate)
@@ -732,33 +868,6 @@ function Babel() {
          });*/
     };
 
-    this.offsetElement = function (el, offset)
-    {
-        if (!el)
-            return 0;
-        if (offset == 0)
-        {
-            if (!el.jsbOffset)
-                el.jsbOffset = 0;
-            return el.jsbOffset;
-        }
-        var n = el;
-        var abs = Math.abs(offset);
-        for (var i = 0; i < abs; i++)
-            if (offset > 0)
-                n = n.nextSibling;
-            else
-                n = n.previousSibling;
-        if (offset > 0)
-            jQuery(el).insertAfter(n);
-        else
-            jQuery(el).insertBefore(n);
-        if (!el.jsbOffset)
-            el.jsbOffset = offset;
-        else
-            el.jsbOffset += offset;
-        return el.jsbOffset;
-    };
     this.getPageDomain = function ()
     {
         if (!pageDomain)
@@ -844,6 +953,8 @@ function Babel() {
             function () {
                 jQuery(attachTranslator);
             });
+
+
     function PersistenceManager() {
         var data = "";
         var strings = "";

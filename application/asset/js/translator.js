@@ -357,25 +357,30 @@ function Translator() {
         var baseText = this.rowObjs.baseText;
         var targetText = this;
         targetText.value = adjustTranslation(baseText.value, targetText.value);
-
-        addTranslation(baseText.value, targetText.value, this.rowObjs.specificInput.checked, isAutoSave());
+        var tuEl = getTranslationElement(this.rowObjs.targetEl, baseText.value);
+        if (tuEl)
+        {
+            tuEl.target = targetText.value;
+            tuEl.tu.applyTranslation();
+        }
         jQuery("textarea.baseInput", handle).each(function () {
             if (this == baseText)
                 return;
             if (this.value == baseText.value)
                 this.rowObjs.targetText.value = targetText.value;
         });
-        tr.translateTree(document.documentElement);
+        tr.applyTranslations();
 
         if (!isAutoSave())
             setModified(true);
     }
     function ignoreTargetText(input) {
-        var b = tr.prepareString(input.rowObjs.baseText.value);
-        if (input.checked) {
-            addIgnore(b, isAutoSave());
-        } else {
-            addTranslation(b, input.rowObjs.targetText.value, input.rowObjs.specificInput.checked, isAutoSave());
+       var baseText = this.rowObjs.baseText;
+        var tuEl = getTranslationElement(this.rowObjs.targetEl, baseText.value);
+        if (tuEl)
+        {
+            tuEl.ignore = input.checked;
+            tuEl.tu.applyTranslation();
         }
         adjustControlState(input);
         function adjustControlState(el) {
@@ -396,7 +401,6 @@ function Translator() {
                 adjustControlState(this);
             }
         });
-        tr.translateTree(document.documentElement);
         if (!isAutoSave())
             setModified(true);
     }
@@ -595,6 +599,7 @@ function Translator() {
         var elementToMove = jRow[0].associatedEl;
         if (!elementToMove)
             return;
+
         var jPrevRow = jRow.prev();
         if (jPrevRow.size() === 0)
             return;
@@ -610,8 +615,9 @@ function Translator() {
             jPrevRow = jTmp;
         }
         jRow.insertBefore(jPrevRow);
-
-        jQuery(elementToMove).insertBefore(prevEl);
+       // jQuery(elementToMove).insertBefore(prevEl);
+        adjustTUPositions(jRow.parent());
+        currentTU.applyTranslation();
         if (!isAutoSave())
             setModified(true);
     }
@@ -635,9 +641,41 @@ function Translator() {
             jNextRow = jTmp;
         }
         jRow.insertAfter(jNextRow);
-        jQuery(elementToMove).insertAfter(nextEl);
+        //jQuery(elementToMove).insertAfter(nextEl);
+        adjustTUPositions(jRow.parent());
+        currentTU.applyTranslation();
         if (!isAutoSave())
             setModified(true);
+    }
+
+    function move(ar, old_index, new_index) {
+        if (new_index >= ar.length) {
+            var k = new_index - ar.length;
+            while ((k--) + 1) {
+                ar.push(undefined);
+            }
+        }
+        ar.splice(new_index, 0, ar.splice(old_index, 1)[0]);
+    }
+
+    function adjustTUPositions(jTable)
+    {
+        var jRows = jQuery("tr.textRow", jTable);
+        for (var originalIdx = 0; originalIdx < currentTU.length; originalIdx++)
+        {
+            var tuEl = currentTU[originalIdx];
+            var newIdx = -1;
+            for (var i = 0; i < jRows.length; i++) {
+                if (jRows[i].associatedEl === tuEl.rootEl)
+                {
+                    newIdx = i;
+                    break;
+                }
+            }
+            tuEl.position = (newIdx === originalIdx) ? null : newIdx;
+
+        }
+
     }
     function setSkipButtonProperties()
     {
@@ -740,6 +778,7 @@ function Translator() {
     }
     function adjustTranslation(b, t)
     {
+        return t;
         var beginningSpaces = /^(\s*)/gm;
         var endingSpaces = /(\s*)$/gm;
         var adjust = false;
@@ -934,7 +973,7 @@ function Translator() {
                         tr.specificSave([trn], [], [], true);
                 }
             });
-            tr.translateTree(document.documentElement);
+            tr.applyTranslations();
             if (!isAutoSave())
                 setModified(true);
         });
@@ -1056,7 +1095,23 @@ function Translator() {
                 return tu;
             }
         }
+        return null;
+    }
+    function getTranslationElement(el, baseText)
+    {
+        for (var i = 0; i < tr.getTranslationUnits().length; i++)
+        {
+            var tu = tr.getTranslationUnits()[i];
+            for (var j = 0; j < tu.length; j++)
+            {
+                var tuEl = tu[j];
 
+                if (tuEl.owner == el && tuEl.base === baseText)
+                    return tuEl;
+            }
+
+        }
+        return null;
     }
     function translateTU(tu, callback)
     {
@@ -1081,8 +1136,15 @@ function Translator() {
             var table = jQuery('.translatorcontent>tbody', handle);
             table.empty();
 
-            function addRow(innerEl, canMovePrev, canMoveNext, base, target, propName, ignore, specific)
+            function addRow(tuItem)
             {
+                var innerEl = tuItem.owner;
+                var base = tuItem.base;
+                var target = tuItem.target;
+                var propName = tuItem.propertyName;
+                var ignore = tuItem.ignore;
+                var specific = tuItem.specific;
+
                 var html = "<tr class='textRow'>" +
                         "<td class='jsb_notranslate titleColumn'><span class='rowtitle'/></td>" +
                         "<td class='jsb_notranslate arrowColumn'></td>" +
@@ -1094,12 +1156,12 @@ function Translator() {
                 var objs = {};
                 objs.targetEl = innerEl;
 
-                var parent = innerEl;
-                while (parent && parent.parentNode !== el)
-                    parent = parent.parentNode;
+                tuItem.rootEl = innerEl;
+                while (tuItem.rootEl && tuItem.rootEl.parentNode !== el)
+                    tuItem.rootEl = tuItem.rootEl.parentNode;
                 var row = jQuery(html, getTranslatorDocument())
                         .appendTo(table).each(function () {
-                    this.associatedEl = parent;
+                    this.associatedEl = tuItem.rootEl;
                 });
                 var jArrowCol = jQuery(".arrowColumn", row);
                 jQuery("<img class='moveprev'/>", getTranslatorDocument())
@@ -1187,10 +1249,7 @@ function Translator() {
             {
                 jQuery('.notranslations', handle).hide();
                 for (var i = 0; i < currentTU.length; i++)
-                {
-                    var item = currentTU[i];
-                    addRow(item.owner, i != 0, i != currentTU.length - 1, item.base, item.target, item.propertyName, item.ignore, item.specific);
-                }
+                    addRow(currentTU[i]);
             }
 
             var row = jQuery("<tr class='htmlRow'><td colspan=5><textarea tabindex=-1 class='htmlInput' readonly='readonly'/></td></tr>", getTranslatorDocument())
@@ -1244,21 +1303,12 @@ function Translator() {
             return;
         var localTranslations = [];
         var localIgnores = [];
-        function findUsedTranslations(val, b) {
-            if (!b)
-                b = val;
-            b = tr.prepareString(b);
-            if (b.length == 0 || b == " ")
-                return;
-            var ign = tr.getIgnore(b);
-            if (ign)
-                localIgnores.push(ign);
-            var trn = tr.getTranslation(b);
-            if (trn && trn.getTarget())
-                localTranslations.push(trn);
+        for (var i = 0; i < tr.getTranslationUnits().length; i++) {
+            var tu = tr.getTranslationUnits()[i];
+            if (tu.isTranslated())
+                addToArray(tu.toBaseString(), tu.toTargetString(), false, localTranslations);
         }
-        //calcolo le traduzioni da tenere perché presenti nella pagina
-        tr.applyTextFunction(document.documentElement, true, true, findUsedTranslations);
+        
         tr.specificSave(localTranslations, localIgnores, false)
     }
     this.specificSave = function (translations, ignores, appendToExisting) {
@@ -1346,7 +1396,7 @@ function Translator() {
                 var t = missingTranslations[i];
                 if (t.getTarget())
                     continue;
-                s += t.toString(tr.TypeTextChar);
+                s += t.toString(TypeTextChar);
             }
 
             return s;
@@ -1401,7 +1451,7 @@ function Translator() {
             //setModified(true); già salvata dal server
 
         }
-        tr.translateTree(document.documentElement);
+        tr.applyTranslations();
         openTranslatorAtFirst();
     }
     function openTranslatorAtFirst()
@@ -1487,4 +1537,5 @@ jQuery(function () {
     } catch (e) {
         alert(e);
     }
-});
+}
+);
