@@ -55,11 +55,12 @@ function commonAncestor(node1, node2) {
 }
 function TranslationUnit()
 {
-    this.isTranslated = function()
+    this.isTranslated = function ()
     {
         for (var i = 0; i < this.length; i++) {
             if (this[i].target)
-                return true;;
+                return true;
+            ;
         }
         return false;
     }
@@ -88,8 +89,15 @@ function TranslationUnit()
         }
         return ret;
     };
+    this.isScript = function ()
+    {
+        return (this.owner.nodeName === "SCRIPT");
+    }
     this.applyTranslation = function ()
     {
+        if (this.isScript())
+            return;
+
         var needMove = false;
         for (var i = 0; i < this.length; i++) {
             var tuEl = this[i];
@@ -123,7 +131,7 @@ function TranslationUnit()
             });
 
             for (i = 0; i < itemsArr.length; ++i) {
-                this.owner.appendChild(itemsArr[i].rootEl);
+                this.owner.appendChild(itemsArr[i].getRootElement());
             }
 
         }
@@ -151,6 +159,7 @@ function TranslationUnit()
                 {
                     pos = parseInt(sb);
                     sb = "";
+                    continue;
                 } else if (ch == TypeTextChar)
                 {
                     break;
@@ -175,7 +184,13 @@ function TranslationElement(tu, owner, base, propertyName)
     this.target = "";
     this.position = null;
     this.propertyName = propertyName;
-
+    this.getRootElement = function ()
+    {
+        var rootEl = owner;
+        while (rootEl && rootEl.parentNode !== tu.owner)
+            rootEl = rootEl.parentNode;
+        return rootEl;
+    }
     this.toString = function ()
     {
         return base;
@@ -280,10 +295,8 @@ function Babel() {
         };
     }
     this.setTranslationData = function (data, dataVersion, strings, stringsVersion) {
+
         missingTranslations.length = 0;
-        translationUnits.length = 0;
-        //first, extract all translation units from dom
-        this.extractTranslationUnits(document.documentElement);
 
         var persist = (trnDataVersion != dataVersion) || (trnStringsVersion != stringsVersion);
         trnDataVersion = dataVersion;
@@ -609,8 +622,17 @@ function Babel() {
         }
     };
     window._jsb = function (s) {
-        var s1 = tr.translate(s);
-        return s1 == null ? s : s1;
+        for (var i = 0; i < tr.getTranslationUnits().length; i++) {
+            var tu = tr.getTranslationUnits()[i];
+            if (!tu.isScript())
+                return s;
+            for (var j = 0; j < tu.length; j++) {
+                var tuEl = tu[j];
+                if (tuEl.base == s)
+                    return tuEl.target ? tuEl.target : s;
+            }
+        }
+        return s;
     };
     this.skipTranslate = function (el) {
         function isNoTranslate(jEl)
@@ -938,6 +960,9 @@ function Babel() {
             tr.addStringScript();
         }
         tr.addCss("/css/babel.css");
+
+        tr.extractTranslationUnits(document.documentElement);
+
     }
     this.addStringScript = function () {
         tr.addScript(stringScript + '?src='
@@ -953,8 +978,6 @@ function Babel() {
             function () {
                 jQuery(attachTranslator);
             });
-
-
     function PersistenceManager() {
         var data = "";
         var strings = "";

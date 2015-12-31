@@ -32,8 +32,8 @@ class Site_model extends MY_Model {
         $this->db->where($this->c["id"], $this->id);
         $this->db->update($this->t, $row);
         $this->load->model('Locales_model');
-        $this->Locales_model->delete($this->id);
         if ($this->target_locales) {
+            $this->Locales_model->delete($this->id);
             foreach ($this->target_locales as $loc) {
                 $this->Locales_model->siteId = $this->id;
                 $this->Locales_model->locale = $loc;

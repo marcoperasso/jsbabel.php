@@ -666,7 +666,7 @@ function Translator() {
             var tuEl = currentTU[originalIdx];
             var newIdx = -1;
             for (var i = 0; i < jRows.length; i++) {
-                if (jRows[i].associatedEl === tuEl.rootEl)
+                if (jRows[i].associatedEl === tuEl.getRootElement())
                 {
                     newIdx = i;
                     break;
@@ -1156,12 +1156,10 @@ function Translator() {
                 var objs = {};
                 objs.targetEl = innerEl;
 
-                tuItem.rootEl = innerEl;
-                while (tuItem.rootEl && tuItem.rootEl.parentNode !== el)
-                    tuItem.rootEl = tuItem.rootEl.parentNode;
+               
                 var row = jQuery(html, getTranslatorDocument())
                         .appendTo(table).each(function () {
-                    this.associatedEl = tuItem.rootEl;
+                    this.associatedEl = tuItem.getRootElement();
                 });
                 var jArrowCol = jQuery(".arrowColumn", row);
                 jQuery("<img class='moveprev'/>", getTranslatorDocument())
