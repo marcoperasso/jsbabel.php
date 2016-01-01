@@ -55,12 +55,13 @@ function commonAncestor(node1, node2) {
 }
 function TranslationUnit()
 {
+    this.specific = false;
+    this.ignore = false;
     this.isTranslated = function ()
     {
         for (var i = 0; i < this.length; i++) {
             if (this[i].target)
                 return true;
-            ;
         }
         return false;
     }
@@ -605,22 +606,7 @@ function Babel() {
         missingTranslations.push(toTranslate);
         return null;
     };
-    this.translate = function (s) {
-        var trn = tr.getTranslation(s);
-        if (!trn)
-            return null;
-        return trn.getTarget().replace(paramRegExp, replaceParam);
-        function replaceParam(m) {
-            try {
-                var idx = parseInt(m.substring(1, m.length - 1));
-                if (idx >= trn.matches.length || idx <= 0)
-                    return m;
-                return trn.matches[idx];
-            } catch (e) {
-                return m;
-            }
-        }
-    };
+
     window._jsb = function (s) {
         for (var i = 0; i < tr.getTranslationUnits().length; i++) {
             var tu = tr.getTranslationUnits()[i];
@@ -642,6 +628,11 @@ function Babel() {
 
         return isNoTranslate(jQuery(el));
     };
+    this.isInline = function (el)
+    {
+        var display = jQuery(el).css("display");
+        return display === "inline";
+    }
     this.extractTranslationUnits = function (el, tuCurrent) {
         try
         {
@@ -724,8 +715,8 @@ function Babel() {
 
             } else
             {
-                var display = jQuery(el).css("display");
-                if (display !== "inline")
+                var inline = tr.isInline(el);
+                if (!inline)
                 {
                     if (tuCurrent)//a new non inline elemente starts: close current TU if existing
                     {
@@ -739,7 +730,7 @@ function Babel() {
                     var child = el.childNodes[i];
                     tuCurrent = tr.extractTranslationUnits(child, tuCurrent);
                 }
-                if (tuCurrent && display !== "inline")//a non inline elemente ends: close current TU if existing
+                if (tuCurrent && !inline)//a non inline elemente ends: close current TU if existing
                 {
                     translationUnits.push(tuCurrent);
                     tuCurrent = null;
@@ -874,20 +865,37 @@ function Babel() {
         for (var i = 0; i < translationUnits.length; i++)
         {
             var tu = translationUnits[i];
-            var translated = tr.translate(tu.toBaseString());
-            if (translated)
+            if (tr.getIgnore(tu.toBaseString()))
             {
-                tu.parseTargetString(translated);
-                tu.applyTranslation();
+                tu.ignore = true;
+            } else
+            {
+                tu.ignore = false;
+                var trn = tr.getTranslation(tu.toBaseString());
+                if (trn)
+                {
+                    var translated = trn.getTarget().replace(paramRegExp, replaceParam);
+                    if (translated)
+                    {
+                        tu.specific = trn.isPageSpecific();
+                        tu.parseTargetString(translated);
+                        tu.applyTranslation();
+                    }
+                }
+            }
+
+        }
+        function replaceParam(m) {
+            try {
+                var idx = parseInt(m.substring(1, m.length - 1));
+                if (idx >= trn.matches.length || idx <= 0)
+                    return m;
+                return trn.matches[idx];
+            } catch (e) {
+                return m;
             }
         }
-        //then apply translations
-        /* tr.getTranslationUnits(root, true, false, function (val, oldVal) {
-         var toTranslate = oldVal ? oldVal : val;
-         if (!toTranslate)
-         return null;
-         return tr.translate(toTranslate);
-         });*/
+
     };
 
     this.getPageDomain = function ()

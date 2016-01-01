@@ -83,15 +83,18 @@ div.inlineTranslator table tbody tr td.arrowColumn img
 div.inlineTranslator table tbody tr td.baseColumn
 {
     min-width: 35%;
+    text-align: center;
 }
 div.inlineTranslator table tbody tr td.targetColumn
 {
     min-width: 35%;
+    text-align: center;
 }
 
 
 div.inlineTranslator table tbody tr td textarea {
     width: 98%;
+    border-radius: 8px;
 }
 div.inlineTranslator table tbody tr td textarea.baseInput {
 

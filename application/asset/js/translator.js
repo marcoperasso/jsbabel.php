@@ -86,8 +86,10 @@ function Translator() {
     var sPopup = _jsb("Show items to translate in a separate window");
     var sNoPopup = _jsb("Show items to translate in the web page window");
     var sAlertPopup = _jsb("Before using this functionality please be sure that your browser doesn't block popups for this site; do you want to continue?");
-    var sIgnoreTranslation = _jsb("Ignore this translation");
-    var sPageTranslation = _jsb("Page speficic translation");
+    var sIgnoreTranslation = _jsb("This translation unit is NOT to translate");
+    var sDoNotIgnoreTranslation = _jsb("This translation unit is to translate");
+    var sPageTranslation = _jsb("This translation unit si valid only for this page");
+    var sNoPageTranslation = _jsb("This translation unit is valid for the entire site");
     var sOrphanWindowTitle = _jsb("Orphan translations");
     var sNoOrphans = _jsb("There are no orphan translations");
     var sAutoSave = _jsb("Autosave enabled");
@@ -103,6 +105,8 @@ function Translator() {
     var btnSave = null;
     var btnSkip = null;
     var btnNext = null;
+    var btnIgnore = null;
+    var btnPageSpecific = null;
     var btnAutoSave = null;
     var btnPopup = null;
     var modified = false;
@@ -243,14 +247,11 @@ function Translator() {
         "xml": false,
         "xmp": false,
         "#text": true};
-    this.isTUElement = function (el)
-    {
-        return !inlines[el.nodeName.toLowerCase()];
-    };
+
 
     this.closestTUElement = function (el)
     {
-        if (tr.isTUElement(el))
+        if (!tr.isInline(el))
             return el;
         return tr.closestTUElement(el.parentNode);
     };
@@ -341,18 +342,7 @@ function Translator() {
         var wnd = getTranslatorWindow();
         return wnd ? wnd.document : null;
     }
-    function specificPageTranslation() {
-        ignoreTargetText(this.rowObjs.ignoreInput);
-        var input = this;
-        jQuery("input.specificInput", handle).each(function () {
-            if (this == input)
-                return;
-            if (this.rowObjs.baseText.value == input.rowObjs.baseText.value)
-            {
-                this.checked = input.checked;
-            }
-        });
-    }
+   
     function changeTargetText() {
         var baseText = this.rowObjs.baseText;
         var targetText = this;
@@ -374,33 +364,21 @@ function Translator() {
         if (!isAutoSave())
             setModified(true);
     }
-    function ignoreTargetText(input) {
-       var baseText = this.rowObjs.baseText;
-        var tuEl = getTranslationElement(this.rowObjs.targetEl, baseText.value);
-        if (tuEl)
-        {
-            tuEl.ignore = input.checked;
-            tuEl.tu.applyTranslation();
-        }
-        adjustControlState(input);
-        function adjustControlState(el) {
-            if (el.checked) {
-                jQuery(el.rowObjs.targetText).attr("readonly", "readonly").attr("tabindex", "-1");
-                jQuery(el).parent().addClass("ignoreIsActive");
-            } else {
-                jQuery(el.rowObjs.targetText).removeAttr("readonly").removeAttr("tabindex");
-                jQuery(el).parent().removeClass("ignoreIsActive");
-            }
-        }
-        jQuery("input.ignoreInput", handle).each(function () {
-            if (this == input)
-                return;
-            if (this.rowObjs.baseText.value == input.rowObjs.baseText.value)
-            {
-                this.checked = input.checked;
-                adjustControlState(this);
-            }
-        });
+
+    function togglePageSpecificTU()
+    {
+        if (!currentTU)
+            return;
+        currentTU.specific = !currentTU.specific;
+        setPageSpecificStateProperties();
+        if (!isAutoSave())
+            setModified(true);
+    }
+    function toggleIgnoreTU() {
+        if (!currentTU)
+            return;
+        currentTU.ignore = !currentTU.ignore;
+        setIgnoreStateProperties();
         if (!isAutoSave())
             setModified(true);
     }
@@ -542,11 +520,14 @@ function Translator() {
 
         addToolButton("jsbclose", "close", sClose, closeTranslatorTable, false, false, false, 27);
         addToolButton("jsbparam", "parameter", sParameter, addParameter, true, false, false, 80);
-        //addToolButton("jsbupLevel", "up-arrow", sUpLevel, upLevel, true, false, false, 38);
         addToolButton("jsbprevSibling", "prev", sPrevSibling, prevSibling, true, false, false, 37);
         btnNext = addToolButton("jsbnextSibling", "next", sNextSibling, nextSibling, true, false, false, 39);
         btnSkip = addToolButton("jsbskip", "", "", skipTranslated, true, false, false, 75);
         setSkipButtonProperties();
+        btnIgnore = addToolButton("jsbIgnore", "translate", sIgnoreTranslation, toggleIgnoreTU, true, false, false, 73);
+        setIgnoreStateProperties();
+        btnPageSpecific = addToolButton("jsbSpecific", "page", sPageTranslation, togglePageSpecificTU, true, false, false, 81);
+        setPageSpecificStateProperties();
         btnPopup = addToolButton("jsbpopup", "", "", togglePopupWindow, true, false, false, 85);
         setPopupButtonProperties();
         if (!tr.isDemoMode())
@@ -592,7 +573,23 @@ function Translator() {
         handle.defaultView = doTextView;
         jQuery('textarea.targetInput:visible', handle).first().focus();
     }
-
+    function hideUnwantedMoveArrows()
+    {
+        var jRows = jQuery("tr.textRow", handle);
+        //the last row is for 'tab' arrow, not for translations
+        for (var i = 0; i < jRows.length - 1; i++) {
+            jQuery('.moveprev', jRows[i]).show();
+            jQuery('.movenext', jRows[i]).show();
+            if (i === 0)
+            {
+                jQuery('.moveprev', jRows[i]).hide();
+            }
+            if (i === jRows.length - 2)
+            {
+                jQuery('.movenext', jRows[i]).hide();
+            }
+        }
+    }
     function movePrev()
     {
         var jRow = jQuery(this).closest("tr.textRow");
@@ -615,11 +612,13 @@ function Translator() {
             jPrevRow = jTmp;
         }
         jRow.insertBefore(jPrevRow);
-       // jQuery(elementToMove).insertBefore(prevEl);
+        // jQuery(elementToMove).insertBefore(prevEl);
         adjustTUPositions(jRow.parent());
         currentTU.applyTranslation();
         if (!isAutoSave())
             setModified(true);
+
+        hideUnwantedMoveArrows();
     }
     function moveNext()
     {
@@ -646,6 +645,7 @@ function Translator() {
         currentTU.applyTranslation();
         if (!isAutoSave())
             setModified(true);
+        hideUnwantedMoveArrows();
     }
 
     function move(ar, old_index, new_index) {
@@ -681,6 +681,22 @@ function Translator() {
     {
         btnSkip.attr("src", tr.getJsbDomain() + (skip ? "/img/skip.png" : "/img/noskip.png"));
         btnSkip.attr("title", (skip ? sSkipTranslated : sIncludeTranslated) + (" " + btnSkip.accelerator.getDescription()));
+    }
+    function setIgnoreStateProperties()
+    {
+        if (!currentTU)
+            return;
+
+        btnIgnore.attr("src", tr.getJsbDomain() + (currentTU.ignore ? "/img/notranslate.png" : "/img/translate.png"));
+        btnIgnore.attr("title", (currentTU.ignore ? sIgnoreTranslation : sDoNotIgnoreTranslation) + (" " + btnIgnore.accelerator.getDescription()));
+    }
+    function setPageSpecificStateProperties()
+    {
+        if (!currentTU)
+            return;
+
+        btnPageSpecific.attr("src", tr.getJsbDomain() + (currentTU.specific ? "/img/page.png" : "/img/site.png"));
+        btnPageSpecific.attr("title", (currentTU.specific ? sPageTranslation : sNoPageTranslation) + (" " + btnPageSpecific.accelerator.getDescription()));
     }
     function skipTranslated()
     {
@@ -734,10 +750,17 @@ function Translator() {
     {
         if (!currentTU)
             return;
+        var units = tr.getTranslationUnits();
         var i = tr.getTranslationUnits().indexOf(currentTU) + offset;
-        if (i >= 0 && i < tr.getTranslationUnits().length)
+        if (i >= 0 && i < units.length)
         {
-            translateTU(tr.getTranslationUnits()[i]);
+            translateTU(units[i]);
+        } else if (offset < 1) //moving backward, when I reach first a go to last
+        {
+            translateTU(units[units.length - 1]);
+        } else
+        {
+            translateTU(units[0]);
         }
     }
     function nextSibling()
@@ -818,35 +841,6 @@ function Translator() {
                 : t;
     }
 
-    function addTranslation(b, t, specific, autosave) {
-        if (!t)
-            return null;
-        b = tr.prepareString(b);
-        var exist = removeFromArray(b, tr.getIgnores());
-        var trn = addToArray(b, t, specific, tr.getTranslations());
-        if (autosave)
-        {
-            if (exist)
-                tr.globalSave();
-            else
-                tr.specificSave([trn], [], [], true);
-        }
-        return trn;
-    }
-    function addIgnore(b, autosave) {
-        b = tr.prepareString(b);
-        var exist = removeFromArray(b, tr.getTranslations());
-        var ign = addToArray(b, "true", false, tr.getIgnores());
-        if (autosave)
-        {
-            if (exist)
-                tr.globalSave();
-            else
-                tr.specificSave([], [], [ign], true);
-        }
-        return ign;
-    }
-
     function showOrphans()
     {
         if (orphansWindow && !orphansWindow.closed)
@@ -910,8 +904,8 @@ function Translator() {
                     "<td class='copyColumn'></td>" +
                     "<td class='baseColumn'><textarea class='baseInput' readonly='readonly'/></td>" +
                     "<td class='targetColumn'><textarea class='targetInput' readonly='readonly'/></td>" +
-                    "<td class='ignoreColumn'><input type='checkbox' tabindex='-1' class='ignoreInput'/ disabled='true'></td>" +
-                    "<td class='specificColumn'><input type='checkbox' tabindex='-1' class='specificInput' disabled='true'/></td>" +
+                    //"<td class='ignoreColumn'><input type='checkbox' tabindex='-1' class='ignoreInput'/ disabled='true'></td>" +
+                    //"<td class='specificColumn'><input type='checkbox' tabindex='-1' class='specificInput' disabled='true'/></td>" +
                     "</tr>";
 
             var row = jQuery(html, jOrphansTable).appendTo(table);
@@ -1113,6 +1107,7 @@ function Translator() {
         }
         return null;
     }
+
     function translateTU(tu, callback)
     {
         try
@@ -1142,21 +1137,19 @@ function Translator() {
                 var base = tuItem.base;
                 var target = tuItem.target;
                 var propName = tuItem.propertyName;
-                var ignore = tuItem.ignore;
-                var specific = tuItem.specific;
 
                 var html = "<tr class='textRow'>" +
                         "<td class='jsb_notranslate titleColumn'><span class='rowtitle'/></td>" +
-                        "<td class='jsb_notranslate arrowColumn'></td>" +
                         "<td class='baseColumn'><textarea tabindex=-1 class='baseInput' readonly='readonly'/></td>" +
+                        "<td class='jsb_notranslate arrowColumn'></td>" +
                         "<td class='targetColumn'><textarea class='targetInput'/></td>" +
-                        "<td class ='ignoreColumn'><input type='checkbox' tabindex='-1' class='ignoreInput'/></td>" +
-                        "<td class ='specificColumn'><input type='checkbox' tabindex='-1' class='specificInput'/></td>" +
+                        // "<td class ='ignoreColumn'><input type='checkbox' tabindex='-1' class='ignoreInput'/></td>" +
+                        // "<td class ='specificColumn'><input type='checkbox' tabindex='-1' class='specificInput'/></td>" +
                         "</tr>";
                 var objs = {};
                 objs.targetEl = innerEl;
 
-               
+
                 var row = jQuery(html, getTranslatorDocument())
                         .appendTo(table).each(function () {
                     this.associatedEl = tuItem.getRootElement();
@@ -1164,7 +1157,7 @@ function Translator() {
                 var jArrowCol = jQuery(".arrowColumn", row);
                 jQuery("<img class='moveprev'/>", getTranslatorDocument())
                         .appendTo(jArrowCol)
-                        .attr("src", tr.getJsbDomain() + '/img/dropup.png')
+                        .attr("src", tr.getJsbDomain() + '/img/moveup.png')
                         .click(movePrev)
                         .attr("title", sMoveBefore)
                         .each(function () {
@@ -1172,7 +1165,7 @@ function Translator() {
                         });
                 jQuery("<img class='movenext'/>", getTranslatorDocument())
                         .appendTo(jArrowCol)
-                        .attr("src", tr.getJsbDomain() + '/img/dropdown.png')
+                        .attr("src", tr.getJsbDomain() + '/img/movedown.png')
                         .attr("title", sMoveNext)
                         .click(moveNext)
                         .each(function () {
@@ -1186,51 +1179,44 @@ function Translator() {
                         .change(changeTargetText);
                 objs.baseText = jBase[0];
 
-                var jSpec = jQuery('input.specificInput', row)
-                        .each(function () {
-                            this.rowObjs = objs;
-                        })
-                        .click(specificPageTranslation);
-
-                if (specific)
-                {
-                    jSpec.attr("checked", "checked");
-                }
-                jSpec.parent().attr("title", sPageTranslation);
-                objs.specificInput = jSpec[0];
-
+                /* var jSpec = jQuery('input.specificInput', row)
+                 .each(function () {
+                 this.rowObjs = objs;
+                 })
+                 .click(specificPageTranslation);
+                 
+                 if (specific)
+                 {
+                 jSpec.attr("checked", "checked");
+                 }
+                 jSpec.parent().attr("title", sPageTranslation);
+                 objs.specificInput = jSpec[0];
+                 */
                 var jTarget = jQuery('textarea.targetInput', row)
                         .text(target)
                         .each(function () {
                             this.rowObjs = objs;
                         })
-                        .keydown(function (e) {
-                            if (e.ctrlKey == true && 73 == e.keyCode) {
-                                jQuery(this.rowObjs.ignoreInput).click();
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }
-                        })
                         .change(changeTargetText);
                 objs.targetText = jTarget[0];
 
-                var jIgn = jQuery('input.ignoreInput', row)
-                        .click(function () {
-                            ignoreTargetText(this);
-                        })
-                        .each(function () {
-                            this.rowObjs = objs;
-                        });
-                jIgn.parent().attr("title", sIgnoreTranslation)
-                objs.ignoreInput = jIgn[0];
-
-                if (ignore)
-                {
-                    jIgn.attr("checked", "checked");
-                    jIgn.parent().addClass("ignoreIsActive");
-                    jTarget.attr("readonly", "readonly");
-                }
-
+                /* var jIgn = jQuery('input.ignoreInput', row)
+                 .click(function () {
+                 ignoreTargetText(this);
+                 })
+                 .each(function () {
+                 this.rowObjs = objs;
+                 });
+                 jIgn.parent().attr("title", sIgnoreTranslation)
+                 objs.ignoreInput = jIgn[0];
+                 
+                 if (ignore)
+                 {
+                 jIgn.attr("checked", "checked");
+                 jIgn.parent().addClass("ignoreIsActive");
+                 jTarget.attr("readonly", "readonly");
+                 }
+                 */
                 var col = jQuery('.rowtitle', row);
                 var lbl = getFullPath(innerEl).substr(rootText.length);
                 if (propName) {
@@ -1275,6 +1261,10 @@ function Translator() {
                     .attr("src", btnNext.attr("src"))
                     .width(16)
                     .height(16);
+
+            hideUnwantedMoveArrows();
+            setPageSpecificStateProperties();
+            setIgnoreStateProperties();
             handle.defaultView();
         } catch (e)
         {
@@ -1303,10 +1293,12 @@ function Translator() {
         var localIgnores = [];
         for (var i = 0; i < tr.getTranslationUnits().length; i++) {
             var tu = tr.getTranslationUnits()[i];
-            if (tu.isTranslated())
-                addToArray(tu.toBaseString(), tu.toTargetString(), false, localTranslations);
+            if (tu.ignore)
+                addToArray(tu.toBaseString(), "1", tu.specific, localIgnores);
+            else if (tu.isTranslated())
+                addToArray(tu.toBaseString(), tu.toTargetString(), tu.specific, localTranslations);
         }
-        
+
         tr.specificSave(localTranslations, localIgnores, false)
     }
     this.specificSave = function (translations, ignores, appendToExisting) {
@@ -1326,9 +1318,6 @@ function Translator() {
         index = 0;
         for (var i = 0; i < ignores.length; i++) {
             var trn = ignores[i];
-            if (!trn.used)
-                continue;
-
             data["bi" + index] = trn.getBase();
             data["ti" + index] = trn.getTarget();
             data["pm" + index] = trn.isPageSpecific();
