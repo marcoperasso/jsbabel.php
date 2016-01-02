@@ -92,7 +92,16 @@ class Translations_model extends MY_Model {
             }
             $query = $this->db->query("SELECT * FROM BASESTRINGS WHERE SITEID = ? AND (PAGEID IS NULL OR PAGEID = ?) AND TEXT = ? AND TYPE = ?", array($siteid, $pageId, $t->baseString, $t->type));
             $baseId = 0;
-            if ($query->num_rows() == 0) {
+            $found = FALSE;
+            //there may be multiple occurrencies because of case insensitivity of the query
+            foreach ($query->result() as $row) {
+                if ($row->TEXT == $t->baseString) {
+                    $baseId = $row->ID;
+                    $found = TRUE;
+                    break;
+                }
+            }
+            if (!$found) {
                 $this->db->insert('BASESTRINGS', array(
                     'siteid' => $siteid,
                     'pageid' => $t->pageSpecific ? $pageId : null, //if translation is not page specific, this field has to be empty!
@@ -100,14 +109,6 @@ class Translations_model extends MY_Model {
                     'type' => $t->type
                 ));
                 $baseId = $this->db->insert_id();
-            } else {
-                //there may be multiple occurrencies because of case insensitivity of the query
-                foreach ($query->result() as $row) {
-                    if ($row->TEXT == $t->baseString) {
-                        $baseId = $row->ID;
-                        break;
-                    }
-                }
             }
 
             $this->db->insert('PAGESTRINGS', array('PAGEID' => $pageId, 'STRINGID' => $baseId));

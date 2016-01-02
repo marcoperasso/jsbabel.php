@@ -80,7 +80,7 @@ function Translator() {
     var sMoveBefore = _jsb("Move before the previous element");
     var sSkipTranslated = _jsb("You are viewing only not yet translated items");
     var sIncludeTranslated = _jsb("You are viewing both translated and not translated items");
-    var sTranslating = _jsb("You are currently translating: ");
+    var sTranslating = _jsb("Current translate unit: ");
     var sNoTranslations = _jsb("This element has nothing to translate.");
     var sNoTransHint = _jsb("If you were expecting something, perhaps all translations have been done and you are filtering translated items, or maybe you are filtering nested items.");
     var sPopup = _jsb("Show items to translate in a separate window");
@@ -342,7 +342,7 @@ function Translator() {
         var wnd = getTranslatorWindow();
         return wnd ? wnd.document : null;
     }
-   
+
     function changeTargetText() {
         var baseText = this.rowObjs.baseText;
         var targetText = this;
@@ -490,6 +490,11 @@ function Translator() {
                 }
             }
         });
+        function addToolSeparator()
+        {
+            jQuery('<span>&nbsp;</span>', getTranslatorDocument()).appendTo(tdButtons);
+
+        }
         function addToolButton(id, image, title, f, ctrl, alt, shift, key)
         {
             var img = jQuery('<img id="' + id + '"/>', getTranslatorDocument()).appendTo(tdButtons);
@@ -524,10 +529,6 @@ function Translator() {
         btnNext = addToolButton("jsbnextSibling", "next", sNextSibling, nextSibling, true, false, false, 39);
         btnSkip = addToolButton("jsbskip", "", "", skipTranslated, true, false, false, 75);
         setSkipButtonProperties();
-        btnIgnore = addToolButton("jsbIgnore", "translate", sIgnoreTranslation, toggleIgnoreTU, true, false, false, 73);
-        setIgnoreStateProperties();
-        btnPageSpecific = addToolButton("jsbSpecific", "page", sPageTranslation, togglePageSpecificTU, true, false, false, 81);
-        setPageSpecificStateProperties();
         btnPopup = addToolButton("jsbpopup", "", "", togglePopupWindow, true, false, false, 85);
         setPopupButtonProperties();
         if (!tr.isDemoMode())
@@ -540,6 +541,9 @@ function Translator() {
             addToolButton("jsbmanage", "edit", sManage, tr.onManage, true, false, false, 77);
             addToolButton("jsblogoff", "logoff", sLogoff, tr.logoff, true, false, false, 27);
         }
+        addToolSeparator();
+        btnIgnore = addToolButton("jsbIgnore", "translate", sIgnoreTranslation, toggleIgnoreTU, true, false, false, 73);
+        btnPageSpecific = addToolButton("jsbSpecific", "page", sPageTranslation, togglePageSpecificTU, true, false, false, 81);
 
         var jBody = jQuery(document.body);
         if (popup)
@@ -689,6 +693,7 @@ function Translator() {
 
         btnIgnore.attr("src", tr.getJsbDomain() + (currentTU.ignore ? "/img/notranslate.png" : "/img/translate.png"));
         btnIgnore.attr("title", (currentTU.ignore ? sIgnoreTranslation : sDoNotIgnoreTranslation) + (" " + btnIgnore.accelerator.getDescription()));
+        jQuery(".targetInput", handle).prop('readonly', currentTU.ignore).css("background-color", currentTU.ignore? '#D5D5D5' : '');
     }
     function setPageSpecificStateProperties()
     {
@@ -1179,19 +1184,7 @@ function Translator() {
                         .change(changeTargetText);
                 objs.baseText = jBase[0];
 
-                /* var jSpec = jQuery('input.specificInput', row)
-                 .each(function () {
-                 this.rowObjs = objs;
-                 })
-                 .click(specificPageTranslation);
-                 
-                 if (specific)
-                 {
-                 jSpec.attr("checked", "checked");
-                 }
-                 jSpec.parent().attr("title", sPageTranslation);
-                 objs.specificInput = jSpec[0];
-                 */
+               
                 var jTarget = jQuery('textarea.targetInput', row)
                         .text(target)
                         .each(function () {
@@ -1200,23 +1193,7 @@ function Translator() {
                         .change(changeTargetText);
                 objs.targetText = jTarget[0];
 
-                /* var jIgn = jQuery('input.ignoreInput', row)
-                 .click(function () {
-                 ignoreTargetText(this);
-                 })
-                 .each(function () {
-                 this.rowObjs = objs;
-                 });
-                 jIgn.parent().attr("title", sIgnoreTranslation)
-                 objs.ignoreInput = jIgn[0];
-                 
-                 if (ignore)
-                 {
-                 jIgn.attr("checked", "checked");
-                 jIgn.parent().addClass("ignoreIsActive");
-                 jTarget.attr("readonly", "readonly");
-                 }
-                 */
+                
                 var col = jQuery('.rowtitle', row);
                 var lbl = getFullPath(innerEl).substr(rootText.length);
                 if (propName) {

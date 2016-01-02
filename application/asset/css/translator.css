@@ -132,6 +132,12 @@ div.inlineTranslator table thead img {
     margin: 3px 3px 3px 3px;
     box-shadow: 1px 1px 1px 1px #333333;
 }
+div.inlineTranslator table thead span {
+    float: left;
+    width: 32px;
+    height: 32px;
+    margin: 3px 3px 3px 3px;
+}
 div.inlineTranslator table thead img:hover {
     margin: 4px 2px 2px 4px;	
 }
