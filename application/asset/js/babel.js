@@ -137,7 +137,6 @@ function Babel() {
         var paramRegExp = /(\%\d+\%)/gm;
         this.specific = false;
         this.ignore = false;
-        this.originalBase = null;
         this.isTranslated = function ()
         {
             for (var i = 0; i < this.length; i++) {
@@ -158,7 +157,7 @@ function Babel() {
         {
             var ret = "";
             for (var i = 0; i < this.length; i++) {
-                ret += this[i].originalBase ? this[i].originalBase : this[i].base;
+                ret += this[i].originalBase;
             }
             return ret;
         };
@@ -280,6 +279,18 @@ function Babel() {
                 return s.substring(currentIndex, currentIndex = currentIndex + l);
             }
         }
+        this.removeTranslations = function (localTranslations, localIgnores)
+        {
+            if (this.ignore)
+            {
+                removeFromArray(this.toBaseString(), localIgnores);
+            } else
+            {
+                removeFromArray(this.toBaseString(), localTranslations);
+            }
+
+        }
+
         this.saveTranslations = function (localTranslations, localIgnores)
         {
             if (this.ignore)
@@ -292,36 +303,34 @@ function Babel() {
                 if (this.isTranslated())
                     addToArray(this.toBaseString(), this.toTargetString(), this.specific, localTranslations);
             }
-
-            function addToArray(b, t, specific, ar) {
-                if (b.length == 0 || b == " ")
-                    return null;
-                for (var i = 0; i < ar.length; i++) {
-                    var trn = ar[i];
-                    if (trn.getBase() == b) {
-                        trn.setTarget(t);
-                        trn.setPageSpecific(specific);
-                        return trn;
-                    }
+        }
+        function addToArray(b, t, specific, ar) {
+            if (b.length == 0 || b == " ")
+                return null;
+            for (var i = 0; i < ar.length; i++) {
+                var trn = ar[i];
+                if (trn.getBase() == b) {
+                    trn.setTarget(t);
+                    trn.setPageSpecific(specific);
+                    return trn;
                 }
-                var trn = tr.createTranslation(b, t ? t : "", specific);
-                ar.push(trn);
-                return trn;
             }
-
-            function removeFromArray(b, ar)
-            {
-                if (b.length == 0 || b == " ")
-                    return false;
-                for (var i = 0; i < ar.length; i++) {
-                    var trn = ar[i];
-                    if (trn.getBase() == b) {
-                        ar.splice(i, 1);
-                        return true;
-                    }
-                }
+            var trn = tr.createTranslation(b, t ? t : "", specific);
+            ar.push(trn);
+            return trn;
+        }
+        function removeFromArray(b, ar)
+        {
+            if (b.length == 0 || b == " ")
                 return false;
+            for (var i = 0; i < ar.length; i++) {
+                var trn = ar[i];
+                if (trn.getBase() == b) {
+                    ar.splice(i, 1);
+                    return true;
+                }
             }
+            return false;
         }
 
     }
@@ -330,7 +339,8 @@ function Babel() {
     {
         this.tu = tu;
         this.owner = owner;
-        this.base = base;
+        this.base = base;//may change when adding parameters
+        this.originalBase = base;
         this.target = "";
         this.position = null;
         this.propertyName = propertyName;
@@ -341,10 +351,7 @@ function Babel() {
                 rootEl = rootEl.parentNode;
             return rootEl;
         }
-        this.toString = function ()
-        {
-            return base;
-        }
+
     }
     this.setTranslationData = function (data, dataVersion, strings, stringsVersion) {
 

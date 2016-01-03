@@ -912,6 +912,7 @@ function Translator() {
             var sel = el.getSelection();
             if (sel.length == 0)
                 return;
+            
             var i = readParameter(sel.text);
             if (i)
             {
@@ -941,6 +942,7 @@ function Translator() {
             tgtEl.val(t);
 
             var tuItem = this.rowObjs.tuItem;
+            tuItem.tu.removeTranslations(tr.getTranslations(), tr.getIgnores());
             tuItem.base = b;
             tuItem.target = t;
 
