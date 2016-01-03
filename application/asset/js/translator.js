@@ -351,7 +351,7 @@ function Translator() {
         if (tuEl)
         {
             tuEl.target = targetText.value;
-            tuEl.tu.applyTranslation();
+            tuEl.tu.saveTranslations(tr.getTranslations(), tr.getIgnores());
         }
         jQuery("textarea.baseInput", handle).each(function () {
             if (this == baseText)
@@ -364,7 +364,16 @@ function Translator() {
         if (!isAutoSave())
             setModified(true);
     }
-
+    function toggleIgnoreTU() {
+        if (!currentTU)
+            return;
+        currentTU.ignore = !currentTU.ignore;
+        currentTU.saveTranslations(tr.getTranslations(), tr.getIgnores());
+        tr.applyTranslations();
+        setIgnoreStateProperties();
+        if (!isAutoSave())
+            setModified(true);
+    }
     function togglePageSpecificTU()
     {
         if (!currentTU)
@@ -374,14 +383,7 @@ function Translator() {
         if (!isAutoSave())
             setModified(true);
     }
-    function toggleIgnoreTU() {
-        if (!currentTU)
-            return;
-        currentTU.ignore = !currentTU.ignore;
-        setIgnoreStateProperties();
-        if (!isAutoSave())
-            setModified(true);
-    }
+
     function setBtnSaveImage()
     {
         if (btnSave) {
@@ -616,9 +618,9 @@ function Translator() {
             jPrevRow = jTmp;
         }
         jRow.insertBefore(jPrevRow);
-        // jQuery(elementToMove).insertBefore(prevEl);
+        
         adjustTUPositions(jRow.parent());
-        currentTU.applyTranslation();
+       
         if (!isAutoSave())
             setModified(true);
 
@@ -644,9 +646,9 @@ function Translator() {
             jNextRow = jTmp;
         }
         jRow.insertAfter(jNextRow);
-        //jQuery(elementToMove).insertAfter(nextEl);
+        
         adjustTUPositions(jRow.parent());
-        currentTU.applyTranslation();
+
         if (!isAutoSave())
             setModified(true);
         hideUnwantedMoveArrows();
@@ -679,6 +681,8 @@ function Translator() {
             tuEl.position = (newIdx === originalIdx) ? null : newIdx;
 
         }
+        currentTU.saveTranslations(tr.getTranslations(), tr.getIgnores());
+        tr.applyTranslations();
 
     }
     function setSkipButtonProperties()
@@ -693,7 +697,7 @@ function Translator() {
 
         btnIgnore.attr("src", tr.getJsbDomain() + (currentTU.ignore ? "/img/notranslate.png" : "/img/translate.png"));
         btnIgnore.attr("title", (currentTU.ignore ? sIgnoreTranslation : sDoNotIgnoreTranslation) + (" " + btnIgnore.accelerator.getDescription()));
-        jQuery(".targetInput", handle).prop('readonly', currentTU.ignore).css("background-color", currentTU.ignore? '#D5D5D5' : '');
+        jQuery(".targetInput", handle).prop('readonly', currentTU.ignore).css("background-color", currentTU.ignore ? '#D5D5D5' : '');
     }
     function setPageSpecificStateProperties()
     {
@@ -776,34 +780,8 @@ function Translator() {
     {
         translateNext(-1);
     }
-    function removeFromArray(b, ar)
-    {
-        if (b.length == 0 || b == " ")
-            return false;
-        for (var i = 0; i < ar.length; i++) {
-            var trn = ar[i];
-            if (trn.getBase() == b) {
-                ar.splice(i, 1);
-                return true;
-            }
-        }
-        return false;
-    }
-    function addToArray(b, t, specific, ar) {
-        if (b.length == 0 || b == " ")
-            return null;
-        for (var i = 0; i < ar.length; i++) {
-            var trn = ar[i];
-            if (trn.getBase() == b) {
-                trn.setTarget(t);
-                trn.setPageSpecific(specific);
-                return trn;
-            }
-        }
-        var trn = tr.createTranslation(b, t ? t : "", specific);
-        ar.push(trn);
-        return trn;
-    }
+
+
     function adjustTranslation(b, t)
     {
         return t;
@@ -924,7 +902,7 @@ function Translator() {
     {
         var matches = s.match(/%\d+%/gm);
         if (matches && matches.length == 1 && matches[0] == s)
-            return parseInt(s.substring(1, s.length - 1));
+            return parseInt(s.substring(1, s.length - 1), 10);
         return null;
     }
     function addParameter() {
@@ -937,7 +915,7 @@ function Translator() {
             var i = readParameter(sel.text);
             if (i)
             {
-                var base = this.rowObjs.targetEl.oldNodeValue ? this.rowObjs.targetEl.oldNodeValue : this.rowObjs.targetEl.nodeValue;
+                var base = this.rowObjs.tuItem.originalBase ? this.rowObjs.tuItem.originalBase : this.rowObjs.targetEl.nodeValue;
                 var pattern = tr.createBasePattern(el.val());
                 var matches = base.match(pattern);
 
@@ -962,16 +940,13 @@ function Translator() {
             });
             tgtEl.val(t);
 
-            tr.applyTextFunction(this.rowObjs.targetEl, true, false, function (val, oldVal) {
-                var trn = oldVal ? tr.getTranslation(oldVal) : null;
-                if (trn) {
-                    trn.setBase(b);
-                    trn.setTarget(t);
+            var tuItem = this.rowObjs.tuItem;
+            tuItem.base = b;
+            tuItem.target = t;
 
-                    if (isAutoSave())
-                        tr.specificSave([trn], [], [], true);
-                }
-            });
+            //if (isAutoSave()) TODO MARCO
+            //    tr.specificSave([trn], [], [], true);
+            tuItem.tu.saveTranslations(tr.getTranslations(), tr.getIgnores());
             tr.applyTranslations();
             if (!isAutoSave())
                 setModified(true);
@@ -1153,7 +1128,7 @@ function Translator() {
                         "</tr>";
                 var objs = {};
                 objs.targetEl = innerEl;
-
+                objs.tuItem = tuItem;
 
                 var row = jQuery(html, getTranslatorDocument())
                         .appendTo(table).each(function () {
@@ -1184,7 +1159,7 @@ function Translator() {
                         .change(changeTargetText);
                 objs.baseText = jBase[0];
 
-               
+
                 var jTarget = jQuery('textarea.targetInput', row)
                         .text(target)
                         .each(function () {
@@ -1193,7 +1168,7 @@ function Translator() {
                         .change(changeTargetText);
                 objs.targetText = jTarget[0];
 
-                
+
                 var col = jQuery('.rowtitle', row);
                 var lbl = getFullPath(innerEl).substr(rootText.length);
                 if (propName) {
@@ -1270,10 +1245,7 @@ function Translator() {
         var localIgnores = [];
         for (var i = 0; i < tr.getTranslationUnits().length; i++) {
             var tu = tr.getTranslationUnits()[i];
-            if (tu.ignore)
-                addToArray(tu.toBaseString(), "1", tu.specific, localIgnores);
-            else if (tu.isTranslated())
-                addToArray(tu.toBaseString(), tu.toTargetString(), tu.specific, localTranslations);
+            tu.saveTranslations(localTranslations, localIgnores);
         }
 
         tr.specificSave(localTranslations, localIgnores, false)
@@ -1332,35 +1304,28 @@ function Translator() {
         if (tr.isBaseLocale())
             return;
         var missingTranslations = [];
-        /*
-         tr.applyTextFunction(document.documentElement, true, true, function (val, oldVal) {
-         // nell'oldVal ho la stringa originale, se ho già tradotto, oppure
-         // nulla,
-         // e allora la stringa originale è in val
-         // la traduzione, se c'è, è in val
-         var b = oldVal ? oldVal : val;
-         
-         b = tr.prepareString(b);
-         if (b.length == 0 || b == " ")
-         return null;
-         if (skipAutomaticTranslation(b))
-         return null;
-         for (var i = 0; i < missingTranslations.length; i++) {
-         var trn = missingTranslations[i];
-         if (trn.getBase() == b) {
-         continue;
-         }
-         }
-         missingTranslations.push(tr.createTranslation(b, "", false));
-         });
-         */
+        tr.getTranslationUnits().forEach(function (tu) {
+            var b = tu.toBaseString();
+            b = tr.prepareString(b);
+            if (b.length === 0 || b === " ")
+                return null;
+            if (skipAutomaticTranslation(b))
+                return null;
+            for (var i = 0; i < missingTranslations.length; i++) {
+                var trn = missingTranslations[i];
+                if (trn.getBase() === b) {
+                    continue;
+                }
+            }
+            missingTranslations.push(tr.createTranslation(b, "", false));
+        });
         function getSerializedTranslations() {
             var s = new String();
             for (var i = 0; i < missingTranslations.length; i++) {
                 var t = missingTranslations[i];
                 if (t.getTarget())
                     continue;
-                s += t.toString(TypeTextChar);
+                s += t.toString(tr.TypeTextChar);
             }
 
             return s;
@@ -1403,17 +1368,16 @@ function Translator() {
             var trn = localTranslations[i];
             if (skipAutomaticTranslation(trn.getBase()))
                 continue;
-            addTranslation(trn.getBase(), trn.getTarget(), false)
-            //setModified(true); già salvata dal server
+            tr.getTranslations().push(trn);
+            setModified(true);
         }
         for (var j = 0; j < localIgnores.length; j++)
         {
             var ign = localIgnores[j];
             if (skipAutomaticTranslation(ign.getBase()))
                 continue;
-            addIgnore(ign.getBase())
-            //setModified(true); già salvata dal server
-
+            tr.getIgnores().push(ign);
+            setModified(true);
         }
         tr.applyTranslations();
         openTranslatorAtFirst();

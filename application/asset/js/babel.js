@@ -1,7 +1,4 @@
-var PositionChar = '%';
-var TypeTextChar = '*';
-var TypeImageChar = '!';
-var TypeIgnoreChar = ':';
+
 
 function setCookie(n, value, exdays) {
     var exdate = new Date();
@@ -24,180 +21,13 @@ function getCookie(n) {
     }
     return "";
 }
-function hexDecode(s)
-{
-    var r = '';
-    for (var i = 0; i < s.length; i += 2)
-    {
-        r += unescape('%' + s.substr(i, 2));
-    }
-    return r;
-}
-function parents(node) {
-    var nodes = [node]
-    for (; node; node = node.parentNode) {
-        nodes.unshift(node)
-    }
-    return nodes
-}
 
-function commonAncestor(node1, node2) {
-    var parents1 = parents(node1)
-    var parents2 = parents(node2)
-
-    if (parents1[0] != parents2[0])
-        throw "No common ancestor!"
-
-    for (var i = 0; i < parents1.length; i++) {
-        if (parents1[i] != parents2[i])
-            return parents1[i - 1]
-    }
-}
-function TranslationUnit()
-{
-    this.specific = false;
-    this.ignore = false;
-    this.isTranslated = function ()
-    {
-        for (var i = 0; i < this.length; i++) {
-            if (this[i].target)
-                return true;
-        }
-        return false;
-    }
-    this.toBaseString = function ()
-    {
-        var ret = "";
-        for (var i = 0; i < this.length; i++) {
-            ret += this[i].base;
-        }
-        return ret;
-    };
-
-    this.toTargetString = function ()
-    {
-        var ret = "";
-        for (var i = 0; i < this.length; i++) {
-            var tuEl = this[i];
-            if (tuEl.position != null)
-            {
-                ret += tuEl.position;
-                ret += PositionChar;
-            }
-            ret += tuEl.target.length;
-            ret += TypeTextChar;
-            ret += tuEl.target;
-        }
-        return ret;
-    };
-    this.isScript = function ()
-    {
-        return (this.owner.nodeName === "SCRIPT");
-    }
-    this.applyTranslation = function ()
-    {
-        if (this.isScript())
-            return;
-
-        var needMove = false;
-        for (var i = 0; i < this.length; i++) {
-            var tuEl = this[i];
-            if (tuEl.target)
-            {
-                if (tuEl.propertyName)
-                    tuEl.owner[tuEl.propertyName] = tuEl.target;
-                else
-                    tuEl.owner.nodeValue = tuEl.target;
-            }
-
-            if (tuEl.position != null)
-            {
-                needMove = true;
-                tuEl.sortingPosition = tuEl.position;
-            } else
-            {
-                tuEl.sortingPosition = i;
-            }
-        }
-
-        if (needMove)
-        {
-            var itemsArr = [];
-            for (var i = 0; i < this.length; i++)
-                itemsArr.push(this[i]);
-            itemsArr.sort(function (a, b) {
-                return a.sortingPosition === b.sortingPosition
-                        ? 0
-                        : (a.sortingPosition > b.sortingPosition ? 1 : -1);
-            });
-
-            for (i = 0; i < itemsArr.length; ++i) {
-                this.owner.appendChild(itemsArr[i].getRootElement());
-            }
-
-        }
-    }
-    this.parseTargetString = function (s)
-    {
-        var currentIndex = 0, currentTUIndex = 0;
-        while (currentIndex < s.length) {
-            if (currentTUIndex >= this.length)
-                return;
-            var tu = this[currentTUIndex++];
-            var pos = null;
-            tu.target = parseString(s);
-            tu.position = pos;
-        }
-
-        function parseString(s) {
-            var ch;
-            var sb = "";
-            while (true) {
-                if (currentIndex >= s.length)
-                    throw "Invalid translation unit string:\r\n" + s;
-                ch = s.charAt(currentIndex++);
-                if (ch == PositionChar)
-                {
-                    pos = parseInt(sb);
-                    sb = "";
-                    continue;
-                } else if (ch == TypeTextChar)
-                {
-                    break;
-                }
-                sb += ch;
-            }
-            var l = parseInt(sb);
-
-            return s.substring(currentIndex, currentIndex = currentIndex + l);
-        }
-    }
-
-}
-TranslationUnit.prototype = [];
-
-
-function TranslationElement(tu, owner, base, propertyName)
-{
-    this.tu = tu;
-    this.owner = owner;
-    this.base = base;
-    this.target = "";
-    this.position = null;
-    this.propertyName = propertyName;
-    this.getRootElement = function ()
-    {
-        var rootEl = owner;
-        while (rootEl && rootEl.parentNode !== tu.owner)
-            rootEl = rootEl.parentNode;
-        return rootEl;
-    }
-    this.toString = function ()
-    {
-        return base;
-    }
-}
 function Babel() {
+    this.PositionChar = '%';
+    this.TypeTextChar = '*';
+    this.TypeImageChar = '!';
+    this.TypeIgnoreChar = ':';
+
     var jsbHost = "http://localhost:610/jsbabel";
     var dropUpImg = '/img/dropup.gif';
     var dropDownImg = '/img/dropdown.gif';
@@ -213,7 +43,6 @@ function Babel() {
     var trnCnt = null;
     var jTrnCnt = null;
     var tr = this;
-    var paramRegExp = /(\%\d+\%)/gm;
     var trimRegExp = /[\r\n\s]+/gm;
     var baseRegExp = /[-[\]{}()*+?.,\\^$|#]|(\%\d+\%)/gm;
     var offset = 0;
@@ -246,6 +75,14 @@ function Babel() {
 
     var targetLocale = getCookie("wltargetLocale");
     var baseLocale = getCookie("wlbaseLocale");
+    this.getTranslations = function ()
+    {
+        return translations;
+    }
+    this.getIgnores = function ()
+    {
+        return ignores;
+    }
     this.isDemoMode = function () {
         return demoMode;
     };
@@ -295,10 +132,223 @@ function Babel() {
             return b.length + separator + b + t.length + separator + t + (pageSpecific ? '1' : '0');
         };
     }
+    function TranslationUnit()
+    {
+        var paramRegExp = /(\%\d+\%)/gm;
+        this.specific = false;
+        this.ignore = false;
+        this.originalBase = null;
+        this.isTranslated = function ()
+        {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].target)
+                    return true;
+            }
+            return false;
+        }
+        this.toBaseString = function () //may differ from original because of parameters
+        {
+            var ret = "";
+            for (var i = 0; i < this.length; i++) {
+                ret += this[i].base;
+            }
+            return ret;
+        };
+        this.toOriginalBaseString = function ()
+        {
+            var ret = "";
+            for (var i = 0; i < this.length; i++) {
+                ret += this[i].originalBase ? this[i].originalBase : this[i].base;
+            }
+            return ret;
+        };
+        this.toTargetString = function ()
+        {
+            var ret = "";
+            for (var i = 0; i < this.length; i++) {
+                var tuEl = this[i];
+                if (tuEl.position != null)
+                {
+                    ret += tuEl.position;
+                    ret += tr.PositionChar;
+                }
+                ret += tuEl.target.length;
+                ret += tr.TypeTextChar;
+                ret += tuEl.target;
+            }
+            return ret;
+        };
+        this.isScript = function ()
+        {
+            return (this.owner.nodeName === "SCRIPT");
+        }
+        this.applyTranslation = function ()
+        {
+            if (this.isScript())
+                return;
+            var trn = this.translation;
+            var needMove = false;
+            for (var i = 0; i < this.length; i++) {
+                var tuEl = this[i];
+                if (tuEl.target)
+                {
+
+                    var translated = tuEl.target.replace(paramRegExp, replaceParam);
+                    if (tuEl.propertyName)
+                    {
+                        if (!tuEl.originalBase)
+                            tuEl.originalBase = tuEl.owner[tuEl.propertyName];
+
+                        tuEl.owner[tuEl.propertyName] = translated;
+                    } else
+                    {
+                        if (!tuEl.originalBase)
+                            tuEl.originalBase = tuEl.owner.nodeValue;
+
+                        tuEl.owner.nodeValue = translated;
+                    }
+                }
+
+                if (tuEl.position != null)
+                {
+                    needMove = true;
+                    tuEl.sortingPosition = tuEl.position;
+                } else
+                {
+                    tuEl.sortingPosition = i;
+                }
+            }
+
+            if (needMove)
+            {
+                var itemsArr = [];
+                for (var i = 0; i < this.length; i++)
+                    itemsArr.push(this[i]);
+                itemsArr.sort(function (a, b) {
+                    return a.sortingPosition === b.sortingPosition
+                            ? 0
+                            : (a.sortingPosition > b.sortingPosition ? 1 : -1);
+                });
+                for (i = 0; i < itemsArr.length; ++i) {
+                    this.owner.appendChild(itemsArr[i].getRootElement());
+                }
+
+            }
+
+            function replaceParam(m) {
+                try {
+                    var idx = parseInt(m.substring(1, m.length - 1), 10);
+                    if (idx >= trn.matches.length || idx <= 0)
+                        return m;
+                    return trn.matches[idx];
+                } catch (e) {
+                    return m;
+                }
+            }
+        }
+        this.parseTargetString = function (s)
+        {
+            var currentIndex = 0, currentTUIndex = 0;
+            while (currentIndex < s.length) {
+                if (currentTUIndex >= this.length)
+                    return;
+                var tu = this[currentTUIndex++];
+                var pos = null;
+                tu.target = parseString(s);
+                tu.position = pos;
+            }
+
+            function parseString(s) {
+                var ch;
+                var sb = "";
+                while (true) {
+                    if (currentIndex >= s.length)
+                        throw "Invalid translation unit string:\r\n" + s;
+                    ch = s.charAt(currentIndex++);
+                    if (ch == tr.PositionChar)
+                    {
+                        pos = parseInt(sb);
+                        sb = "";
+                        continue;
+                    } else if (ch == tr.TypeTextChar)
+                    {
+                        break;
+                    }
+                    sb += ch;
+                }
+                var l = parseInt(sb);
+                return s.substring(currentIndex, currentIndex = currentIndex + l);
+            }
+        }
+        this.saveTranslations = function (localTranslations, localIgnores)
+        {
+            if (this.ignore)
+            {
+                removeFromArray(this.toBaseString(), localTranslations);
+                addToArray(this.toBaseString(), "1", this.specific, localIgnores);
+            } else
+            {
+                removeFromArray(this.toBaseString(), localIgnores);
+                if (this.isTranslated())
+                    addToArray(this.toBaseString(), this.toTargetString(), this.specific, localTranslations);
+            }
+
+            function addToArray(b, t, specific, ar) {
+                if (b.length == 0 || b == " ")
+                    return null;
+                for (var i = 0; i < ar.length; i++) {
+                    var trn = ar[i];
+                    if (trn.getBase() == b) {
+                        trn.setTarget(t);
+                        trn.setPageSpecific(specific);
+                        return trn;
+                    }
+                }
+                var trn = tr.createTranslation(b, t ? t : "", specific);
+                ar.push(trn);
+                return trn;
+            }
+
+            function removeFromArray(b, ar)
+            {
+                if (b.length == 0 || b == " ")
+                    return false;
+                for (var i = 0; i < ar.length; i++) {
+                    var trn = ar[i];
+                    if (trn.getBase() == b) {
+                        ar.splice(i, 1);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+    }
+    TranslationUnit.prototype = [];
+    function TranslationElement(tu, owner, base, propertyName)
+    {
+        this.tu = tu;
+        this.owner = owner;
+        this.base = base;
+        this.target = "";
+        this.position = null;
+        this.propertyName = propertyName;
+        this.getRootElement = function ()
+        {
+            var rootEl = owner;
+            while (rootEl && rootEl.parentNode !== tu.owner)
+                rootEl = rootEl.parentNode;
+            return rootEl;
+        }
+        this.toString = function ()
+        {
+            return base;
+        }
+    }
     this.setTranslationData = function (data, dataVersion, strings, stringsVersion) {
 
         missingTranslations.length = 0;
-
         var persist = (trnDataVersion != dataVersion) || (trnStringsVersion != stringsVersion);
         trnDataVersion = dataVersion;
         trnStringsVersion = stringsVersion;
@@ -324,7 +374,6 @@ function Babel() {
                 return 1;
             return 0;
         });
-
         targetLocale = null;
         //first one is target locale
         for (var i = 0; i < trnData.ld.length; i++) {
@@ -358,10 +407,8 @@ function Babel() {
         img.title = decodeURIComponent(title) + _jsb(" - Powered by JSBABEL");
         img.className = "jsb_imageButton jsb_notranslate";
         img.onclick = fn;
-
         dropdownHeight += imgH + 4;
         trnCnt.appendChild(img);
-
     };
     this.login = function () {
         var jLogin = jQuery("#_jsbLoginModal");
@@ -371,7 +418,6 @@ function Babel() {
             tr.addScript(getLoginScript); //will call modal() after load
 
     };
-
     this.setThis = function (th) {
         tr = th;
     };
@@ -465,7 +511,6 @@ function Babel() {
             if (!isOpening)
                 return;
             var ddHeight = jTrnCnt.height();
-
             if (ddHeight < dropdownHeight) {
                 ddHeight += 10;
                 jTrnCnt.height(ddHeight);
@@ -553,9 +598,9 @@ function Babel() {
             var b = parseString(s);
             var t = parseString(s);
             var specific = s.charAt(currentIndex++) == '1';
-            if (typeChar == TypeTextChar)
+            if (typeChar == tr.TypeTextChar)
                 localTranslations.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
-            else if (typeChar == TypeIgnoreChar)
+            else if (typeChar == tr.TypeIgnoreChar)
                 localIgnores.push(tr.createTranslation(decodeURIComponent(b), decodeURIComponent(t), specific));
         }
 
@@ -566,7 +611,7 @@ function Babel() {
                 if (currentIndex >= s.length)
                     throw "Invalid translation string:\r\n" + s;
                 ch = s.charAt(currentIndex++); //il separatore è * per le traduzioni, ? per gli spostamenti di dom
-                if (ch == TypeTextChar || ch == TypeIgnoreChar)
+                if (ch == tr.TypeTextChar || ch == tr.TypeIgnoreChar)
                 {
                     typeChar = ch;
                     break;
@@ -606,7 +651,6 @@ function Babel() {
         missingTranslations.push(toTranslate);
         return null;
     };
-
     window._jsb = function (s) {
         for (var i = 0; i < tr.getTranslationUnits().length; i++) {
             var tu = tr.getTranslationUnits()[i];
@@ -690,7 +734,6 @@ function Babel() {
                 {
                     var reg = /_jsb\s*\(\s*"((.(?!"\s*\)))*.)/gm;
                     var tokens;
-
                     while ((tokens = reg.exec(text)))
                     {
                         var tu = new TranslationUnit();
@@ -779,7 +822,7 @@ function Babel() {
                     if (isValidAttribute(attr))
                     {
                         var tu = new TranslationUnit();
-                        tu.owner = el;//the element which caused ths creation of this TU
+                        tu.owner = el; //the element which caused ths creation of this TU
                         tu.push(new TranslationElement(tu, el, el[attr], attr));
                         translationUnits.push(tu);
                     }
@@ -792,6 +835,26 @@ function Babel() {
         }
 
         return tuCurrent;
+
+        function parents(node) {
+            var nodes = [node]
+            for (; node; node = node.parentNode) {
+                nodes.unshift(node)
+            }
+            return nodes
+        }
+        function commonAncestor(node1, node2) {
+            var parents1 = parents(node1)
+            var parents2 = parents(node2)
+
+            if (parents1[0] != parents2[0])
+                throw "No common ancestor!"
+
+            for (var i = 0; i < parents1.length; i++) {
+                if (parents1[i] != parents2[i])
+                    return parents1[i - 1]
+            }
+        }
     };
     this.prepareString = function (s) {
         s = s.replace(trimRegExp, " ");
@@ -865,39 +928,26 @@ function Babel() {
         for (var i = 0; i < translationUnits.length; i++)
         {
             var tu = translationUnits[i];
-            if (tr.getIgnore(tu.toBaseString()))
+            if (tr.getIgnore(tu.toOriginalBaseString()))
             {
                 tu.ignore = true;
             } else
             {
                 tu.ignore = false;
-                var trn = tr.getTranslation(tu.toBaseString());
+                var trn = tr.getTranslation(tu.toOriginalBaseString());
                 if (trn)
                 {
-                    var translated = trn.getTarget().replace(paramRegExp, replaceParam);
-                    if (translated)
-                    {
-                        tu.specific = trn.isPageSpecific();
-                        tu.parseTargetString(translated);
-                        tu.applyTranslation();
-                    }
+                    tu.specific = trn.isPageSpecific();
+                    tu.parseTargetString(trn.getTarget());
+                    tu.translation = trn;
+                    tu.applyTranslation();
                 }
             }
 
         }
-        function replaceParam(m) {
-            try {
-                var idx = parseInt(m.substring(1, m.length - 1));
-                if (idx >= trn.matches.length || idx <= 0)
-                    return m;
-                return trn.matches[idx];
-            } catch (e) {
-                return m;
-            }
-        }
+
 
     };
-
     this.getPageDomain = function ()
     {
         if (!pageDomain)
@@ -954,7 +1004,6 @@ function Babel() {
         trnCnt.style.left = "10px";
         trnCnt.style.top = "10px";
         trnCnt.className = "jsb_translator jsb_notranslate";
-
         jTrnCnt = jQuery(trnCnt);
         if (persistencyManager) {
             persistencyManager.open(function () {
@@ -968,9 +1017,7 @@ function Babel() {
             tr.addStringScript();
         }
         tr.addCss("/css/babel.css");
-
         tr.extractTranslationUnits(document.documentElement);
-
     }
     this.addStringScript = function () {
         tr.addScript(stringScript + '?src='
