@@ -1,13 +1,21 @@
 
-
-function setCookie(n, value, exdays) {
+function _jsbHexDecode(s)
+{
+    var r = '';
+    for (var i = 0; i < s.length; i += 2)
+    {
+        r += unescape('%' + s.substr(i, 2));
+    }
+    return r;
+}
+function _jsbSetCookie(n, value, exdays) {
     var exdate = new Date();
     exdate.setDate(exdate.getDate() + exdays);
     var c_value = escape(value)
             + ((exdays == null) ? "" : "; expires=" + exdate.toUTCString());
     document.cookie = n + "=" + c_value;
 }
-function getCookie(n) {
+function _jsbGetCookie(n) {
     var x, y, cookies = document.cookie.split(";");
     for (var i = 0; i < cookies.length; i++) {
         var cookie = cookies[i];
@@ -73,8 +81,8 @@ function Babel() {
     }
 
 
-    var targetLocale = getCookie("wltargetLocale");
-    var baseLocale = getCookie("wlbaseLocale");
+    var targetLocale = _jsbGetCookie("wltargetLocale");
+    var baseLocale = _jsbGetCookie("wlbaseLocale");
     this.getTranslations = function ()
     {
         return translations;
@@ -189,23 +197,19 @@ function Babel() {
             var needMove = false;
             for (var i = 0; i < this.length; i++) {
                 var tuEl = this[i];
-                if (tuEl.target)
+                var translated = tuEl.target;//.replace(paramRegExp, replaceParam);
+                if (tuEl.propertyName)
                 {
+                    if (!tuEl.originalBase)
+                        tuEl.originalBase = tuEl.owner[tuEl.propertyName];
 
-                    var translated = tuEl.target.replace(paramRegExp, replaceParam);
-                    if (tuEl.propertyName)
-                    {
-                        if (!tuEl.originalBase)
-                            tuEl.originalBase = tuEl.owner[tuEl.propertyName];
+                    tuEl.owner[tuEl.propertyName] = translated ? translated : tuEl.originalBase;
+                } else
+                {
+                    if (!tuEl.originalBase)
+                        tuEl.originalBase = tuEl.owner.nodeValue;
 
-                        tuEl.owner[tuEl.propertyName] = translated;
-                    } else
-                    {
-                        if (!tuEl.originalBase)
-                            tuEl.originalBase = tuEl.owner.nodeValue;
-
-                        tuEl.owner.nodeValue = translated;
-                    }
+                    tuEl.owner.nodeValue = translated ? translated : tuEl.originalBase;;
                 }
 
                 if (tuEl.position != null)
@@ -381,7 +385,6 @@ function Babel() {
                 return 1;
             return 0;
         });
-        targetLocale = null;
         //first one is target locale
         for (var i = 0; i < trnData.ld.length; i++) {
             var flag = trnData.ld[i];
@@ -578,11 +581,11 @@ function Babel() {
     };
     this.setBaseLocale = function (l) {
         baseLocale = l;
-        setCookie("wlbaseLocale", baseLocale, 365);
+        _jsbSetCookie("wlbaseLocale", baseLocale, 365);
     };
     this.setTargetLocale = function (l) {
         targetLocale = l;
-        setCookie("wltargetLocale", l, 365);
+        _jsbSetCookie("wltargetLocale", l, 365);
     };
     this.getTargetLocale = function () {
         return targetLocale;
@@ -647,12 +650,14 @@ function Babel() {
             return null;
         for (var i = 0; i < translations.length; i++) {
             var t = translations[i];
-            var matches = toTranslate.match(t.getBasePattern());
+            if (toTranslate === t.getBase())
+                return t;
+            /*var matches = toTranslate.match(t.getBasePattern());
             if (matches != null && matches.length > 0
                     && matches[0] == toTranslate) {
                 t.matches = matches;
                 return t;
-            }
+            }*/
         }
 
         missingTranslations.push(toTranslate);
@@ -843,24 +848,19 @@ function Babel() {
 
         return tuCurrent;
 
-        function parents(node) {
-            var nodes = [node]
-            for (; node; node = node.parentNode) {
-                nodes.unshift(node)
-            }
-            return nodes
-        }
+
         function commonAncestor(node1, node2) {
-            var parents1 = parents(node1)
-            var parents2 = parents(node2)
-
-            if (parents1[0] != parents2[0])
-                throw "No common ancestor!"
-
-            for (var i = 0; i < parents1.length; i++) {
-                if (parents1[i] != parents2[i])
-                    return parents1[i - 1]
+            while (null !== node1)
+            {
+                while (null !== node2)
+                {
+                    if (node1 === node2)
+                        return node1;
+                    node2 = node2.parentNode;
+                }
+                node1 = node1.parentNode;
             }
+            return null;
         }
     };
     this.prepareString = function (s) {

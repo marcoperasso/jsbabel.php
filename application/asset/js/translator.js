@@ -121,9 +121,9 @@ function Translator() {
 
     var flasher = null;
     var addedBodySpace = 0;
-    var skip = getCookie(skipTranslatedCookie) == "true";
-    var autosave = getCookie(autosaveCookie) == "true";
-    var popup = getCookie(popupCookie) == "true";
+    var skip = _jsbGetCookie(skipTranslatedCookie) == "true";
+    var autosave = _jsbGetCookie(autosaveCookie) == "true";
+    var popup = _jsbGetCookie(popupCookie) == "true";
     var jqueryuicss = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css";
 
     this.onManage = function () {
@@ -410,7 +410,7 @@ function Translator() {
             }
             return handle;
         }
-        var trnH = parseInt(getCookie(trHeightCookie));
+        var trnH = parseInt(_jsbGetCookie(trHeightCookie));
         if (!trnH || isNaN(trnH))
             trnH = 200;
         if (popup)
@@ -446,7 +446,7 @@ function Translator() {
                         },
                         stop: function () {
                             jQuery(translatorFrame).show();
-                            setCookie(trHeightCookie, jQuery(this).height(), 365);
+                            _jsbSetCookie(trHeightCookie, jQuery(this).height(), 365);
                         }
                     });
             translatorFrame = jQuery("iframe", f)[0];
@@ -526,7 +526,7 @@ function Translator() {
         addTab("htmlView", sHtmlView, doHtmlView, 90);
 
         addToolButton("jsbclose", "close", sClose, closeTranslatorTable, false, false, false, 27);
-        addToolButton("jsbparam", "parameter", sParameter, addParameter, true, false, false, 80);
+        //addToolButton("jsbparam", "parameter", sParameter, addParameter, true, false, false, 80);
         addToolButton("jsbprevSibling", "prev", sPrevSibling, prevSibling, true, false, false, 37);
         btnNext = addToolButton("jsbnextSibling", "next", sNextSibling, nextSibling, true, false, false, 39);
         btnSkip = addToolButton("jsbskip", "", "", skipTranslated, true, false, false, 75);
@@ -618,9 +618,9 @@ function Translator() {
             jPrevRow = jTmp;
         }
         jRow.insertBefore(jPrevRow);
-        
+
         adjustTUPositions(jRow.parent());
-       
+
         if (!isAutoSave())
             setModified(true);
 
@@ -646,7 +646,7 @@ function Translator() {
             jNextRow = jTmp;
         }
         jRow.insertAfter(jNextRow);
-        
+
         adjustTUPositions(jRow.parent());
 
         if (!isAutoSave())
@@ -710,7 +710,7 @@ function Translator() {
     function skipTranslated()
     {
         skip = !skip;
-        setCookie(skipTranslatedCookie, skip, 365);
+        _jsbSetCookie(skipTranslatedCookie, skip, 365);
         setSkipButtonProperties();
         if (currentTU)
             translateTU(currentTU);
@@ -728,7 +728,7 @@ function Translator() {
     function toggleAutosave()
     {
         autosave = !autosave;
-        setCookie(autosaveCookie, autosave, 365);
+        _jsbSetCookie(autosaveCookie, autosave, 365);
         setAutosaveButtonProperties();
     }
 
@@ -751,7 +751,7 @@ function Translator() {
         if (tu)
             translateTU(tu, function ()
             {
-                setCookie(popupCookie, popup, 365); //solo se tutto va bene, imposto il cookie per rendere persistente lo stato
+                _jsbSetCookie(popupCookie, popup, 365); //solo se tutto va bene, imposto il cookie per rendere persistente lo stato
             });
     }
 
@@ -906,38 +906,43 @@ function Translator() {
         return null;
     }
     function addParameter() {
+        var modified = false;
+        var baseParamIndex = 0;
         var els = jQuery('textarea.baseInput', handle);
         els.each(function () {
             var el = jQuery(this);
             var sel = el.getSelection();
-            if (sel.length == 0)
+            if (sel.length === 0)
+            {
+                var matches = el.val().match(/(%\d+%)/gm);
+                if (matches)
+                    baseParamIndex += matches.length;
                 return;
-            
+            }
             var i = readParameter(sel.text);
+            var baseLocalIndex = baseParamIndex;
+            var targetLocalIndex = baseParamIndex;
             if (i)
             {
                 var base = this.rowObjs.tuItem.originalBase ? this.rowObjs.tuItem.originalBase : this.rowObjs.targetEl.nodeValue;
                 var pattern = tr.createBasePattern(el.val());
                 var matches = base.match(pattern);
 
-                el.replaceSelection(matches[i], true);
+                el.replaceSelection(matches[i - baseLocalIndex], true);
             } else
             {
                 el.replaceSelection('%' + 0 + '%', true);
             }
-
             var b = el.val();
-            var paramIndex = 0;
             b = b.replace(/(%\d+%)/gm, function (m) {
-                return '%' + ++paramIndex + '%';
+                return '%' + ++baseParamIndex + '%';
             });
             el.val(b);
             var tgtEl = jQuery(this.rowObjs.targetText);
             var t = tgtEl.val();
             t = t.replace(sel.text, '%' + 0 + '%');
-            paramIndex = 0;
             t = t.replace(/(%\d+%)/gm, function (m) {
-                return '%' + ++paramIndex + '%';
+                return '%' + ++targetLocalIndex + '%';
             });
             tgtEl.val(t);
 
@@ -945,14 +950,19 @@ function Translator() {
             tuItem.tu.removeTranslations(tr.getTranslations(), tr.getIgnores());
             tuItem.base = b;
             tuItem.target = t;
+            tuItem.tu.saveTranslations(tr.getTranslations(), tr.getIgnores());
+            
+            modified = true;
 
+        });
+        if (modified)
+        {
             //if (isAutoSave()) TODO MARCO
             //    tr.specificSave([trn], [], [], true);
-            tuItem.tu.saveTranslations(tr.getTranslations(), tr.getIgnores());
             tr.applyTranslations();
             if (!isAutoSave())
                 setModified(true);
-        });
+        }
     }
 
     function isValid(element) {

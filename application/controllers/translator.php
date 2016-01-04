@@ -41,7 +41,7 @@ class Translator extends MY_Controller {
         $view = $this->load->view('login.html', '', true);
         $view = str_replace('{{BASE_URL}}', BASE_URL, $view);
         $view = hexEncode($view);
-        $response = 'jQuery(hexDecode("' . $view . '")).appendTo(document.body);';
+        $response = 'jQuery(_jsbHexDecode("' . $view . '")).appendTo(document.body);';
         $this->output
                 ->set_content_type('text/javascript')
                 ->set_output($response);
