@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link rel="import" href="templates/header.html">
         <title>404 - Page not found</title>
     </head>
 

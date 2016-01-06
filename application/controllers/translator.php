@@ -38,7 +38,7 @@ class Translator extends MY_Controller {
 
     //returns login page
     public function get_login_page() {
-        $view = $this->load->view('login.html', '', true);
+        $view = $this->load_view('login.html', '', true);
         $view = str_replace('{{BASE_URL}}', BASE_URL, $view);
         $view = hexEncode($view);
         $response = 'jQuery(_jsbHexDecode("' . $view . '")).appendTo(document.body);';
@@ -135,9 +135,8 @@ class Translator extends MY_Controller {
             $clientData->x = $site->offset;
             $clientData->y = $site->top;
 
-            if ($baseLocale != $targetLocale) {//lo aggiungo se non l'ho già messo in testa
-                array_push($clientData->ld, $this->getLocaleFlagData($baseLocale));
-            }
+            array_push($clientData->ld, $this->getLocaleFlagData($baseLocale));
+
             foreach ($site->get_target_locales() as $loc) {
                 if ($loc == $targetLocale) {
                     array_unshift($clientData->ld, $this->getLocaleFlagData($loc)); //used language is always the first of the list

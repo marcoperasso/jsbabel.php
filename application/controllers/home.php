@@ -10,10 +10,10 @@ class Home extends MY_Controller {
     }
 
     public function index() {
-        $this->load->view('home_not_logged.html');
+        $this->load_view('home_not_logged.html');
     }
    public function test() {
-        $this->load->view('test.html');
+        $this->load_view('test.html');
     }
     function data() {
         $data = new stdClass();

@@ -12,7 +12,7 @@ class Register extends MY_Controller {
     }
 
     public function privacy() {
-        $this->load->view('register/privacy');
+        $this->load_view('register/privacy');
     }
 
     public function activate() {
@@ -76,7 +76,7 @@ class Register extends MY_Controller {
             $this->db->trans_commit();
             $data["user_draft"] = $this->User_model;
             $data["validationkey"] = $this->Validation_key_model->validationkey;
-            $view = $this->load->view('mail/resetpwdmailcontent', $data, TRUE);
+            $view = $this->load_view('mail/resetpwdmailcontent', $data, TRUE);
             $this->send_mail($this->User_model->mail, lang("reset_pwd_submitted"), $view);
             $this->load_view('register/resettedpwd', "Ripristino password", $data);
         } else {
@@ -92,14 +92,14 @@ class Register extends MY_Controller {
         $this->db->trans_commit();
         $data["user_draft"] = $this->User_model;
         $data["validationkey"] = $this->Validation_key_model->validationkey;
-        $view = $this->load->view('mail/registermailcontent', $data, TRUE);
+        $view = $this->load_view('mail/registermailcontent', $data, TRUE);
         $this->send_mail($this->User_model->mail, lang("registration_submitted"), $view);
         $this->send_mail("info@ecommuters.com", lang("registration_submitted"), $view);
         $this->load_view('register/userregistered', "Utente registrato", $data);
     }
 
     public function index() {
-        $this->load->view('register/register.html');
+        $this->load_view('register/register.html');
     }
 
 }

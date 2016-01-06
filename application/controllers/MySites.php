@@ -56,7 +56,7 @@ class MySites extends MY_Controller {
         $user = $this->get_user_or_redirect();
         if (!$user)
             return;
-        $this->load->view('mysites.html');
+        $this->load_view('mysites.html');
     }
 
     private function verify_permission($user, $siteId) {

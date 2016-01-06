@@ -157,7 +157,11 @@ function Babel() {
         {
             var ret = "";
             for (var i = 0; i < this.length; i++) {
-                ret += this[i].base;
+                var tuEl = this[i];
+                if (jQuery(tuEl.getRootElement()).hasClass('jsb_var'))
+                    ret += "%0%";
+                else
+                    ret += tuEl.base;
             }
             return ret;
         };
@@ -209,7 +213,8 @@ function Babel() {
                     if (!tuEl.originalBase)
                         tuEl.originalBase = tuEl.owner.nodeValue;
 
-                    tuEl.owner.nodeValue = translated ? translated : tuEl.originalBase;;
+                    tuEl.owner.nodeValue = translated ? translated : tuEl.originalBase;
+                    ;
                 }
 
                 if (tuEl.position != null)
@@ -637,9 +642,12 @@ function Babel() {
         if (toTranslate.length == 0 || toTranslate == " ")
             return null;
         for (var i = 0; i < ignores.length; i++) {
-            var trn = ignores[i];
-            if (trn.getBase() == toTranslate) {
-                return trn;
+            var t = ignores[i];
+            var matches = toTranslate.match(t.getBasePattern());
+            if (matches != null && matches.length > 0
+                    && matches[0] == toTranslate) {
+                t.matches = matches;
+                return t;
             }
         }
         return null;
@@ -650,14 +658,12 @@ function Babel() {
             return null;
         for (var i = 0; i < translations.length; i++) {
             var t = translations[i];
-            if (toTranslate === t.getBase())
-                return t;
-            /*var matches = toTranslate.match(t.getBasePattern());
+            var matches = toTranslate.match(t.getBasePattern());
             if (matches != null && matches.length > 0
                     && matches[0] == toTranslate) {
                 t.matches = matches;
                 return t;
-            }*/
+            }
         }
 
         missingTranslations.push(toTranslate);

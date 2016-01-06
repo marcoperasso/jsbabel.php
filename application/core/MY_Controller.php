@@ -49,7 +49,7 @@ class MY_Controller extends CI_Controller {
         $state = $this->get_state();
         $state->redirectUrl = $this->router->fetch_class() . '/' . $this->router->fetch_method();
         $this->set_state($state);
-        $this->load->view('login_needed.html');
+        $this->load_view('login_needed.html');
         return NULL;
     }
 
@@ -96,14 +96,18 @@ class MY_Controller extends CI_Controller {
         return TRUE;
     }
 
-    protected function load_view($view, $title = "", $data = array(), $return = FALSE) {
-        $data["view_name"] = $view;
-        if (empty($title)) {
-            $title = lang("welcome");
+    protected function load_view($view) {
+        $string = $this->load->view($view, '', true);
+        $index = stripos($string, "</head>");
+        if (!$index)
+        {
+            echo $string;
+            return;
         }
-        $data["page_title"] = $title;
-        $data["user"] = $this->user;
-        return $this->load->view("templates/masterpage", $data, $return);
+        echo substr($string, 0, $index);
+        echo $this->load->view("templates/header.html", "", TRUE);
+        echo substr($string, $index, strlen($string) - $index);
+        
     }
 
 }

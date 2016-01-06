@@ -15,7 +15,7 @@ class MyData extends MY_Controller {
     public function index() {
         $user = $this->get_user_or_redirect();
         
-        $this->load->view('mydata.html');
+        $this->load_view('mydata.html');
     }
 
   

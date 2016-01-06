@@ -697,8 +697,17 @@ function Translator() {
 
         btnIgnore.attr("src", tr.getJsbDomain() + (currentTU.ignore ? "/img/notranslate.png" : "/img/translate.png"));
         btnIgnore.attr("title", (currentTU.ignore ? sIgnoreTranslation : sDoNotIgnoreTranslation) + (" " + btnIgnore.accelerator.getDescription()));
-        jQuery(".targetInput", handle).prop('readonly', currentTU.ignore).css("background-color", currentTU.ignore ? '#D5D5D5' : '');
+
+        jQuery(".targetInput", handle).each(function (n) {
+            var jThis = jQuery(this);
+            if (jQuery(this.rowObjs.tuItem.getRootElement()).hasClass('jsb_var'))
+                jThis.prop('readonly', true).css("background-color", '#D5D5FF');
+            else
+                jThis.prop('readonly', currentTU.ignore).css("background-color", currentTU.ignore ? '#D5D5D5' : '');
+        });
+
     }
+
     function setPageSpecificStateProperties()
     {
         if (!currentTU)
@@ -951,7 +960,7 @@ function Translator() {
             tuItem.base = b;
             tuItem.target = t;
             tuItem.tu.saveTranslations(tr.getTranslations(), tr.getIgnores());
-            
+
             modified = true;
 
         });
@@ -1229,6 +1238,8 @@ function Translator() {
             hideUnwantedMoveArrows();
             setPageSpecificStateProperties();
             setIgnoreStateProperties();
+
+
             handle.defaultView();
         } catch (e)
         {
