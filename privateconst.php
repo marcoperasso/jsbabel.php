@@ -17,4 +17,5 @@ define('MAIL_USER',             'mtbgroupscout@gmail.com');
 define('MAIL_PASSWORD',         'montoggio');
 define('MAIL_PORT',             25);
 
+define('MICROSOFT_TRANSLATOR_SECRET',       "");
 ?>

@@ -241,6 +241,108 @@ class Translator extends MY_Controller {
                 ->set_output($response);
     }
 
+    public function translate($inputStr, $from, $to) {
+        try {
+            //Get the Access token.
+        $accessToken = $this->getTokens();
+        //Create the authorization Header string.
+        $authHeader = "Authorization: Bearer " . $accessToken;
+
+        $uri = "http://api.microsofttranslator.com/v2/Http.svc/Translate?text=" . urlencode($inputStr) . "&from=" . $from . "&to=" . $to;
+
+        //Call the curlRequest.
+        $strResponse = $this->curlRequest($uri, $authHeader);
+        //Interprets a string of XML into an object.
+        $xmlObj = simplexml_load_string($strResponse);
+        $ar = (array)$xmlObj[0];
+        $translated = $ar[0];
+        
+        $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode(array("success" => true, "value" => $translated)));
+        } catch (Exception $ex) {
+             $this->output
+                ->set_content_type('text/json')
+                ->set_output(json_encode(array("success" => false, "error" => $ex->getMessage())));
+        }
+        
+    }
+
+    private function getTokens() {
+
+        $clientID = "jsbabel";
+        $clientSecret = MICROSOFT_TRANSLATOR_SECRET;
+        $authUrl = "https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/";
+        $scopeUrl = "http://api.microsofttranslator.com";
+        $grantType = "client_credentials";
+
+        //Initialize the Curl Session.
+        $ch = curl_init();
+        //Create the request Array.
+        $paramArr = array(
+            'grant_type' => $grantType,
+            'scope' => $scopeUrl,
+            'client_id' => $clientID,
+            'client_secret' => $clientSecret
+        );
+        //Create an Http Query.//
+        $paramArr = http_build_query($paramArr);
+        //Set the Curl URL.
+        curl_setopt($ch, CURLOPT_URL, $authUrl);
+        //Set HTTP POST Request.
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        //Set data to POST in HTTP "POST" Operation.
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $paramArr);
+        //CURLOPT_RETURNTRANSFER- TRUE to return the transfer as a string of the return value of curl_exec().
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        //CURLOPT_SSL_VERIFYPEER- Set FALSE to stop cURL from verifying the peer's certificate.
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        //Execute the  cURL session.
+        $strResponse = curl_exec($ch);
+        //Get the Error Code returned by Curl.
+        $curlErrno = curl_errno($ch);
+        if ($curlErrno) {
+            $curlError = curl_error($ch);
+            throw new Exception($curlError);
+        }
+        //Close the Curl Session.
+        curl_close($ch);
+        //Decode the returned JSON string.
+        $objResponse = json_decode($strResponse);
+
+        return $objResponse->access_token;
+    }
+
+    private function curlRequest($url, $authHeader, $postData = '') {
+        //Initialize the Curl Session.
+        $ch = curl_init();
+        //Set the Curl url.
+        curl_setopt($ch, CURLOPT_URL, $url);
+        //Set the HTTP HEADER Fields.
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array($authHeader, "Content-Type: text/xml"));
+        //CURLOPT_RETURNTRANSFER- TRUE to return the transfer as a string of the return value of curl_exec().
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        //CURLOPT_SSL_VERIFYPEER- Set FALSE to stop cURL from verifying the peer's certificate.
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, False);
+        if ($postData) {
+            //Set HTTP POST Request.
+            curl_setopt($ch, CURLOPT_POST, TRUE);
+            //Set data to POST in HTTP "POST" Operation.
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        }
+        //Execute the  cURL session.
+        $curlResponse = curl_exec($ch);
+        //Get the Error Code returned by Curl.
+        $curlErrno = curl_errno($ch);
+        if ($curlErrno) {
+            $curlError = curl_error($ch);
+            throw new Exception($curlError);
+        }
+        //Close a cURL session.
+        curl_close($ch);
+        return $curlResponse;
+    }
+
     private function getLocaleFlagData($locale) {
         $d = new stdClass();
         $country = get_country($locale);
