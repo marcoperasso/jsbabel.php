@@ -98,16 +98,9 @@ class MY_Controller extends CI_Controller {
 
     protected function load_view($view) {
         $string = $this->load->view($view, '', true);
-        $index = stripos($string, "</head>");
-        if (!$index)
-        {
-            echo $string;
-            return;
-        }
-        echo substr($string, 0, $index);
-        echo $this->load->view("templates/header.html", "", TRUE);
-        echo substr($string, $index, strlen($string) - $index);
-        
+        $pattern = '/<head.*>/';
+        $replace = '${1}' . $this->load->view("templates/header.html", "", TRUE);
+        echo preg_replace($pattern, $replace, $string);
     }
 
 }

@@ -241,31 +241,56 @@ class Translator extends MY_Controller {
                 ->set_output($response);
     }
 
-    public function translate($inputStr, $from, $to) {
+    public function translate() {
+        $json = NULL;
         try {
-            //Get the Access token.
-        $accessToken = $this->getTokens();
+            $callback = $this->input->get("jsoncallback");
+            $inputStr = $this->input->get("text");
+            $from = $this->input->get("from");
+            $to = $this->input->get("to");
+            $translated = $this->microsoft_translate($inputStr, $from, $to, FALSE);
+            if (!$translated)
+                $translated = $this->microsoft_translate($inputStr, $from, $to, TRUE);
+            $json = array("success" => true, "value" => $translated);
+        } catch (Exception $ex) {
+            $json = array("success" => false, "error" => $ex->getMessage());
+        }
+        if ($callback) {
+            $output = $callback . "(" . json_encode($json) . ");";
+            $this->output
+                    ->set_content_type('text/javascript')
+                    ->set_output($output);
+        } else {
+            $this->output
+                    ->set_content_type('text/json')
+                    ->set_output(json_encode($json));
+        }
+    }
+
+    private function microsoft_translate($inputStr, $from, $to, $forceGetToken) {
+        //Get the Access token.
+        //Il token dure dieci minuti, lo metto in sessione e lo riuso finché posso
+        if (!isset($_SESSION)) {
+            session_start();
+        }
+        $accessToken = $_SESSION["microsoft_token"];
+
+        if (!$accessToken || $forceGetToken) {
+            $accessToken = $this->getTokens();
+            if (isset($_SESSION))
+                $_SESSION["microsoft_token"] = $accessToken;
+        }
+
         //Create the authorization Header string.
         $authHeader = "Authorization: Bearer " . $accessToken;
-
         $uri = "http://api.microsofttranslator.com/v2/Http.svc/Translate?text=" . urlencode($inputStr) . "&from=" . $from . "&to=" . $to;
-
         //Call the curlRequest.
         $strResponse = $this->curlRequest($uri, $authHeader);
         //Interprets a string of XML into an object.
         $xmlObj = simplexml_load_string($strResponse);
-        $ar = (array)$xmlObj[0];
+        $ar = (array) $xmlObj[0];
         $translated = $ar[0];
-        
-        $this->output
-                ->set_content_type('text/json')
-                ->set_output(json_encode(array("success" => true, "value" => $translated)));
-        } catch (Exception $ex) {
-             $this->output
-                ->set_content_type('text/json')
-                ->set_output(json_encode(array("success" => false, "error" => $ex->getMessage())));
-        }
-        
+        return $translated;
     }
 
     private function getTokens() {
