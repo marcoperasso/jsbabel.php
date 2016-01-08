@@ -38,7 +38,7 @@ class Translator extends MY_Controller {
 
     //returns login page
     public function get_login_page() {
-        $view = $this->load_view('login.html', '', true);
+        $view = $this->load->view('login.html', '', true);
         $view = str_replace('{{BASE_URL}}', BASE_URL, $view);
         $view = hexEncode($view);
         $response = 'jQuery(_jsbHexDecode("' . $view . '")).appendTo(document.body);';
