@@ -102,7 +102,7 @@ class MySites extends MY_Controller {
         $site->base_locale = $this->input->post('baseLanguage');
         $site->target_locales = $this->input->post('targetLanguage');
         $site->anchor = $this->input->post('anchor');
-        if (!$site->update())
+        if (!$site->update_object())
             $this->send_json_response(MySites::CANNOT_UPDATE_SITE);
         else
             $this->send_json_response();

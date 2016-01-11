@@ -25,36 +25,28 @@ class Site_model extends MY_Model {
         );
     }
 
-    public function update() {
-        $this->db->trans_start();
-        $row = new stdClass;
-        $this->object_to_row($this, $row);
-        $this->db->where($this->c["id"], $this->id);
-        $this->db->update($this->t, $row);
+    public function update_slaves() {
         $this->load->model('Locales_model');
         if ($this->target_locales) {
             $this->Locales_model->delete($this->id);
             foreach ($this->target_locales as $loc) {
                 $this->Locales_model->siteId = $this->id;
                 $this->Locales_model->locale = $loc;
-                $this->Locales_model->insertObject();
+                $this->Locales_model->insert_object();
             }
         }
-        return $this->db->trans_complete();
     }
 
     public function insert($ownerUserId) {
         $this->db->trans_start();
-        $row = new stdClass;
-        $this->object_to_row($this, $row);
-        $this->db->insert($this->t, $row);
+        $this->insert_object();
 
         $this->id = $this->db->insert_id();
         $this->load->model("User_sites_model");
         $this->User_sites_model->siteId = $this->id;
         $this->User_sites_model->userId = $ownerUserId;
         $this->User_sites_model->role = UserRole::Owner | UserRole::Translator;
-        $this->User_sites_model->insertObject();
+        $this->User_sites_model->insert_object();
 
         return $this->db->trans_complete();
     }

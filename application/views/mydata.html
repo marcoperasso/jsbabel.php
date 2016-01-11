@@ -9,57 +9,30 @@
                 <div class="col-md-6 center-text">
 
                     <h1>My data</h1>
-                    <h2 ng-show="pageData.sites.length == 0">You currently have no sites to translate.</h2>
                 </div>
                 <div class="col-md-3"></div>
             </div>
             <div class="body row site">
                 <div class="col-md-2"></div>
                 <div class="col-md-8">
-                    <form method="post" action="mysites/update" target="res">
-                        <input type="hidden" name="siteid" class="siteid" value="{{site.siteId}}">
-                        <fieldset class="outerfields">
-                            <legend>
-                                <img src="img/delete.png" class="deletesite clickable" alt="Remove this site" title="Remove this site"/>
-                                <span class="jsb_notranslate">{{site.host}}</span>
-                            </legend>
-                            <div class="container" >
-                                <div class="row">
-                                    <fieldset class="innerfields col-md-4">
-                                        <legend>Original site language</legend>
-
-                                        <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate">
-                                            <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "loc.code == site.base_locale" value="{{loc.code}}">
-                                                {{loc.displayName}}
-                                            </option>
-                                            <option ng-repeat="loc in pageData.locales" ng-if = "loc.code != site.base_locale" value="{{loc.code}}">
-                                                {{loc.displayName}}
-                                            </option>
-                                        </select>
-                                    </fieldset>
-                                    <fieldset class="innerfields col-md-4">
-                                        <legend>Translated languages</legend>
-                                        <select multiple id="targetLanguage" name="targetLanguage[]"
-                                                class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
-
-                                            <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "site.target_locales.indexOf(loc.code) != -1" value="{{loc.code}}">
-                                                {{loc.displayName}}
-                                            </option>
-                                            <option ng-repeat="loc in pageData.locales" ng-if = "site.target_locales.indexOf(loc.code) == -1" value="{{loc.code}}">
-                                                {{loc.displayName}}
-                                            </option>
-                                        </select>
-                                    </fieldset>
-                                    <fieldset class="innerfields col-md-4">
-                                        <div class="anchorValue">{{site.anchor}}</div>
-                                        <legend>Anchor language flags to: </legend>
-                                        <input type="radio" name="anchor" value="L" class="siteproperty" >
-                                        left margin of the page<BR />
-                                        <input type="radio" name="anchor" value="C" class="siteproperty">
-                                        center of the page<BR />
-                                    </fieldset>
-
-                                </div>
+                    <form method="post" action="mydata/update" target="res" role="form">
+                        <fieldset class="innerfields">
+                            <legend>Main data</legend>
+                            <div class="form-group">
+                                <label for ="userId">User id</label>
+                                <input id="userId" name="userid" class="form-control" type="text" value= "{{data.user.userid}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for ="userName">First name</label>
+                                <input id="userName" name="name" class="form-control" type="text" value= "{{data.user.name}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for ="userSurname">Second name</label>
+                                <input id="userSurname" name="surname" class="form-control" type="text" value= "{{data.user.surname}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for ="mail">E-mail</label>
+                                <input id="mail" name="mail" class="form-control" type="text" value= "{{data.user.mail}}"/>
                             </div>
 
                         </fieldset>
@@ -68,17 +41,17 @@
                 <div class="col-md-2"></div>
 
             </div>
-           
+
         </div>
         <script type="text/javascript">
 
             //this is the request than angularjs will send to server to populate controller
             //see header.html
-            window.controllerRequest = "mydata/user_data";
+            //window.controllerRequest = "mydata/user_data";
 
             window.controllerReady = function () {
-        
-                $(".siteproperty").change(somethingChanged);
+
+                   $(".form-control").change(somethingChanged);
 
             };
             this.somethingChanged = function () {
@@ -92,7 +65,7 @@
                         showError(res.code);
                 });
             }
-            
+
         </script>
     </body>
 

@@ -32,13 +32,13 @@
         <div class="content" >
             <div class="body row">
 
-                <div class="col-md-3"></div>
-                <div class="col-md-6 center-text">
+                <div class="col-md-2"></div>
+                <div class="col-md-8 center-text">
 
                     <h1>My sites</h1>
                     <h2 ng-show="pageData.sites.length == 0">You currently have no sites to translate.</h2>
                 </div>
-                <div class="col-md-3"></div>
+                <div class="col-md-2"></div>
             </div>
             <div class="body row site" ng-repeat="site in pageData.sites">
                 <div class="col-md-2"></div>
@@ -55,7 +55,7 @@
                                     <fieldset class="innerfields col-md-4">
                                         <legend>Original site language</legend>
 
-                                        <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate">
+                                        <select id="baseLanguage" name="baseLanguage" class="siteproperty jsb_notranslate form-control">
                                             <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "loc.code == site.base_locale" value="{{loc.code}}">
                                                 {{loc.displayName}}
                                             </option>
@@ -67,7 +67,7 @@
                                     <fieldset class="innerfields col-md-4">
                                         <legend>Translated languages</legend>
                                         <select multiple id="targetLanguage" name="targetLanguage[]"
-                                                class="targetLanguage siteproperty jsb_notranslate" title="Select a language">
+                                                class="targetLanguage siteproperty jsb_notranslate form-control" title="Select a language">
 
                                             <option ng-repeat="loc in pageData.locales" selected="selected" ng-if = "site.target_locales.indexOf(loc.code) != -1" value="{{loc.code}}">
                                                 {{loc.displayName}}
@@ -78,11 +78,11 @@
                                         </select>
                                     </fieldset>
                                     <fieldset class="innerfields col-md-4">
-                                        <div class="anchorValue">{{site.anchor}}</div>
                                         <legend>Anchor language flags to: </legend>
-                                        <input type="radio" name="anchor" value="L" class="siteproperty" >
+                                        <div class="anchorValue">{{site.anchor}}</div>
+                                        <input type="radio" name="anchor" value="L" class="siteproperty " >
                                         left margin of the page<BR />
-                                        <input type="radio" name="anchor" value="C" class="siteproperty">
+                                        <input type="radio" name="anchor" value="C" class="siteproperty ">
                                         center of the page<BR />
                                     </fieldset>
 
@@ -99,10 +99,10 @@
             <form class = "col-md-8" id="addsiteform">
                 <fieldset class="outerfields">
                     <legend>Add a new site</legend>
-                    <div class="center-text" >
+                    <div class="form-group center-text" >
                         <label for="addsite">Site address: </label>
-                        <input id="sitename" style="width: 300px;" name="host" type="text" placeholder="http://www.your site.com" >
-                        <input type="submit" id="addbtn" value="Add">
+                        <input id="sitename" name="host" type="text" placeholder="http://www.your site.com" class="form-control">
+                        <input type="submit" id="addbtn" value="Add" class="btn btn-default">
                     </div>
                 </fieldset>
             </form>
