@@ -30,7 +30,7 @@ class Translator extends MY_Controller {
 
         $site->offset = $left;
         $site->top = $top;
-        $site->update();
+        $site->update_object();
         $this->output
                 ->set_content_type('text/json')
                 ->set_output(json_encode(array("success" => true)));
@@ -193,7 +193,7 @@ class Translator extends MY_Controller {
         }
         $this->Translations_model->save_translations($site->id, $tt, parse_url($url, PHP_URL_PATH), $targetLanguage, $append);
         $site->translation_version++;
-        $site->update();
+        $site->update_object();
         $this->output
                 ->set_content_type('text/json')
                 ->set_output(json_encode(array("success" => true)));

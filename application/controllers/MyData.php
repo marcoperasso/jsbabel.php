@@ -44,7 +44,10 @@ class MyData extends MY_Controller {
         if (!$user->update_object())
             $this->send_json_response(1);//MySites::CANNOT_UPDATE_SITE
         else
+        {
+            $this->set_user($user);
             $this->send_json_response();
+        }
     }
 
     

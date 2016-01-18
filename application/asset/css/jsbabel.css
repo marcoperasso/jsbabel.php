@@ -11,6 +11,7 @@ img.logo
 {
     width: 100px;
     height: auto;
+    margin-bottom: 10px;
 }
 .row
 {
@@ -123,6 +124,8 @@ h6,
     background-image: linear-gradient(to top,#DFFCE7 0,#FDFB65 25%);
     webkit-box-shadow: none;
     box-shadow: none;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 .navbar-default {
     border: none;

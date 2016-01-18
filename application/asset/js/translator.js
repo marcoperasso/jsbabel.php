@@ -62,6 +62,7 @@
 
 function Translator() {
     var currentMousePos = {x: -1, y: -1};
+    var hoverMousePos = {x: -1, y: -1};
     var orphanScript = '/translator/orphans';
     var beginautotranslateScript = '/translator/begin_autotranslate';
     var endautotranslateScript = '/translator/end_autotranslate';
@@ -248,7 +249,9 @@ function Translator() {
     this.closestTUElement = function (el)
     {
         if (!tr.isInline(el))
-            return el;
+        {
+            return getTranslationUnit(el) ? el : null;
+        }
         return tr.closestTUElement(el.parentNode);
     };
     function FlashAnimator(e)
@@ -1044,15 +1047,17 @@ function Translator() {
         evt.preventDefault();
         evt.stopPropagation();
         var overEl = tr.closestTUElement(evt.target);
-        if (tr.isBaseLocale() || !isValid(overEl) || currentHooked === overEl)
+        if (!overEl || tr.isBaseLocale() || !isValid(overEl) || currentHooked === overEl)
             return;
         popupTimeoutId = setTimeout(popupHook, 1000); //un secondo
+        hoverMousePos.x = currentMousePos.x;
+        hoverMousePos.y = currentMousePos.y;
         function popupHook()
         {
             currentHooked = overEl;
             jPop.offset({
-                top: currentMousePos.y - 20, //offset.top, 
-                left: currentMousePos.x - 20//offset.left
+                top: hoverMousePos.y , //offset.top, 
+                left: hoverMousePos.x //offset.left
 
             });
             jQuery("img", jPop)
